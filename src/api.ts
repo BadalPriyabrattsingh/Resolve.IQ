@@ -7,6 +7,9 @@ import {
   DashboardStats,
   Severity,
   IncidentStatus,
+  Investigation,
+  Hypothesis,
+  HypothesisStatus,
 } from './types';
 
 let currentUserId = 'usr-ic-1'; // Default to Sarah Chen (Incident Manager)
@@ -207,6 +210,41 @@ export const api = {
   async resetDemoData(): Promise<void> {
     await fetchWithAuth('/api/reset-demo', {
       method: 'POST',
+    });
+  },
+
+  // AI Investigation
+  async getInvestigation(incidentId: string): Promise<Investigation> {
+    const data = await fetchWithAuth(`/api/incidents/${incidentId}/investigation`);
+    return data.investigation;
+  },
+
+  async startInvestigation(incidentId: string): Promise<Investigation> {
+    const data = await fetchWithAuth(`/api/incidents/${incidentId}/investigation/start`, {
+      method: 'POST',
+    });
+    return data.investigation;
+  },
+
+  async updateHypothesisStatus(
+    incidentId: string,
+    hypothesisId: string,
+    status: HypothesisStatus,
+    notes?: { statement?: string; reason?: string }
+  ): Promise<{ hypothesis: Hypothesis; incident: Incident; investigation: Investigation }> {
+    return fetchWithAuth(`/api/incidents/${incidentId}/hypotheses/${hypothesisId}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status, ...notes }),
+    });
+  },
+
+  async sendInvestigationChatMessage(
+    incidentId: string,
+    message: string
+  ): Promise<{ reply: string; groundedEvidence: string[]; investigation: Investigation }> {
+    return fetchWithAuth(`/api/incidents/${incidentId}/investigation/chat`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
     });
   },
 };

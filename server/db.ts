@@ -10,7 +10,11 @@ import {
   UserRole,
   Severity,
   IncidentStatus,
+  Investigation,
+  Hypothesis,
+  HypothesisStatus,
 } from '../src/types';
+import { synthesizeDeterministicInvestigation } from './aiInvestigation';
 
 interface DatabaseSchema {
   users: User[];
@@ -18,6 +22,7 @@ interface DatabaseSchema {
   incidents: Incident[];
   evidence: Evidence[];
   timelineEvents: TimelineEvent[];
+  investigations: Investigation[];
 }
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -547,6 +552,16 @@ const SEED_TIMELINE_EVENTS: TimelineEvent[] = [
   },
 ];
 
+function getInitialSeedInvestigations(): Investigation[] {
+  return [
+    synthesizeDeterministicInvestigation(
+      SEED_INCIDENTS[0],
+      SEED_EVIDENCE.filter((e) => e.incidentId === 'inc-2026-00124'),
+      SEED_TIMELINE_EVENTS.filter((t) => t.incidentId === 'inc-2026-00124')
+    ),
+  ];
+}
+
 // Helper to safely load or initialize database
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -556,6 +571,8 @@ function ensureDataDir() {
 
 function loadDatabase(): DatabaseSchema {
   ensureDataDir();
+  const initialInvestigations = getInitialSeedInvestigations();
+
   if (!fs.existsSync(DB_FILE)) {
     const initialDb: DatabaseSchema = {
       users: SEED_USERS,
@@ -563,6 +580,7 @@ function loadDatabase(): DatabaseSchema {
       incidents: SEED_INCIDENTS,
       evidence: SEED_EVIDENCE,
       timelineEvents: SEED_TIMELINE_EVENTS,
+      investigations: initialInvestigations,
     };
     saveDatabase(initialDb);
     return initialDb;
@@ -578,6 +596,10 @@ function loadDatabase(): DatabaseSchema {
       incidents: parsed.incidents || SEED_INCIDENTS,
       evidence: parsed.evidence || SEED_EVIDENCE,
       timelineEvents: parsed.timelineEvents || SEED_TIMELINE_EVENTS,
+      investigations:
+        parsed.investigations && parsed.investigations.length > 0
+          ? parsed.investigations
+          : initialInvestigations,
     };
   } catch (err) {
     console.error('Failed to read database file, re-initializing with seed data:', err);
@@ -587,6 +609,7 @@ function loadDatabase(): DatabaseSchema {
       incidents: SEED_INCIDENTS,
       evidence: SEED_EVIDENCE,
       timelineEvents: SEED_TIMELINE_EVENTS,
+      investigations: initialInvestigations,
     };
     saveDatabase(fallbackDb);
     return fallbackDb;
@@ -814,15 +837,34 @@ export const db = {
 
     // Check status change
     if (updates.status && updates.status !== current.status) {
+      const validStatuses: IncidentStatus[] = [
+        'DETECTED',
+        'TRIAGED',
+        'INVESTIGATING',
+        'MITIGATING',
+        'RESOLVED',
+        'CLOSED',
+      ];
+      if (!validStatuses.includes(updates.status)) {
+        throw new Error(`Invalid incident status: ${updates.status}`);
+      }
+
       const oldStatus = current.status;
       const newStatus = updates.status;
 
       let resolvedTime = current.resolvedTime;
       if (newStatus === 'RESOLVED' || newStatus === 'CLOSED') {
-        resolvedTime = now;
+        resolvedTime = resolvedTime || now;
+      } else {
+        // Re-opened from resolved or closed
+        resolvedTime = undefined;
       }
-
       updates.resolvedTime = resolvedTime;
+
+      // If progressing past DETECTED and not acknowledged yet, mark acknowledged
+      if (!current.acknowledgedTime && newStatus !== 'DETECTED') {
+        updates.acknowledgedTime = now;
+      }
 
       db.addTimelineEvent({
         incidentId: current.id,
@@ -1023,20 +1065,69 @@ export const db = {
     const sev3Count = openIncidents.filter((i) => i.severity === 'SEV-3').length;
     const sev4Count = openIncidents.filter((i) => i.severity === 'SEV-4').length;
 
-    const activeInvestigations = incidents.filter((i) => i.status === 'INVESTIGATING').length;
-
     // Calculate average resolution time for resolved/closed incidents
-    const resolvedList = incidents.filter((i) => (i.status === 'RESOLVED' || i.status === 'CLOSED') && i.resolvedTime && i.startedTime);
-    let avgResolutionMinutes = 38; // sensible default
+    const resolvedList = incidents.filter(
+      (i) => (i.status === 'RESOLVED' || i.status === 'CLOSED') && i.resolvedTime && (i.startedTime || i.detectedTime)
+    );
+    let avgResolutionMinutes = 38;
     if (resolvedList.length > 0) {
       const totalMinutes = resolvedList.reduce((acc, inc) => {
-        const start = new Date(inc.startedTime).getTime();
+        const start = new Date(inc.startedTime || inc.detectedTime).getTime();
         const end = new Date(inc.resolvedTime!).getTime();
         const diffMin = Math.max(1, Math.round((end - start) / (1000 * 60)));
         return acc + diffMin;
       }, 0);
       avgResolutionMinutes = Math.round(totalMinutes / resolvedList.length);
     }
+
+    // Calculate real MTTA (Mean Time to Acknowledge) from acknowledged incidents
+    const acknowledgedList = incidents.filter(
+      (i) => i.acknowledgedTime && (i.detectedTime || i.startedTime)
+    );
+    let avgAcknowledgeMinutes = 4.2;
+    if (acknowledgedList.length > 0) {
+      const totalAckMin = acknowledgedList.reduce((acc, inc) => {
+        const detected = new Date(inc.detectedTime || inc.startedTime).getTime();
+        const ack = new Date(inc.acknowledgedTime!).getTime();
+        const diffMin = Math.max(0.2, (ack - detected) / (1000 * 60));
+        return acc + diffMin;
+      }, 0);
+      avgAcknowledgeMinutes = Math.round((totalAckMin / acknowledgedList.length) * 10) / 10;
+    }
+
+    // Active AI investigations & hypotheses count from DB
+    const allInvestigations = dbCache.investigations || [];
+    const activeInvestigationsList = allInvestigations.filter((inv) => {
+      const inc = incidents.find((i) => i.id === inv.incidentId);
+      return inc && openStatuses.includes(inc.status);
+    });
+    const activeInvestigations = activeInvestigationsList.length || incidents.filter((i) => i.status === 'INVESTIGATING').length;
+    const activeHypothesesCount = activeInvestigationsList.reduce(
+      (acc, inv) => acc + (inv.hypotheses?.length || 0),
+      0
+    );
+
+    // Calculate real incident trend from recorded incident timeline timestamps
+    const trendMap: Record<string, { date: string; label: string; count: number; sev1Sev2: number; resolved: number }> = {};
+    incidents.forEach((inc) => {
+      const d = new Date(inc.detectedTime || inc.startedTime || inc.createdTimestamp);
+      const dateKey = d.toISOString().slice(0, 10);
+      const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (!trendMap[dateKey]) {
+        trendMap[dateKey] = { date: dateKey, label, count: 0, sev1Sev2: 0, resolved: 0 };
+      }
+      trendMap[dateKey].count += 1;
+      if (inc.severity === 'SEV-1' || inc.severity === 'SEV-2') {
+        trendMap[dateKey].sev1Sev2 += 1;
+      }
+      if (inc.status === 'RESOLVED' || inc.status === 'CLOSED') {
+        trendMap[dateKey].resolved += 1;
+      }
+    });
+
+    const incidentTrend = Object.keys(trendMap)
+      .sort()
+      .map((k) => trendMap[k]);
 
     const servicesHealth = {
       total: services.length,
@@ -1066,11 +1157,155 @@ export const db = {
       sev3Count,
       sev4Count,
       avgResolutionTimeMinutes: avgResolutionMinutes,
+      avgAcknowledgeTimeMinutes: avgAcknowledgeMinutes,
       activeInvestigationsCount: activeInvestigations,
+      activeHypothesesCount,
       servicesHealth,
       severityDistribution,
       statusDistribution,
+      incidentTrend,
     };
+  },
+
+  // INVESTIGATIONS & HYPOTHESES
+  getInvestigation(incidentId: string): Investigation | null {
+    if (!dbCache.investigations) {
+      dbCache.investigations = getInitialSeedInvestigations();
+    }
+    const inv = dbCache.investigations.find((i) => i.incidentId === incidentId);
+    return inv || null;
+  },
+
+  saveInvestigation(investigation: Investigation): Investigation {
+    if (!dbCache.investigations) {
+      dbCache.investigations = [];
+    }
+    const idx = dbCache.investigations.findIndex((i) => i.incidentId === investigation.incidentId);
+    if (idx >= 0) {
+      dbCache.investigations[idx] = investigation;
+    } else {
+      dbCache.investigations.push(investigation);
+    }
+    saveDatabase(dbCache);
+    return investigation;
+  },
+
+  updateHypothesisStatus(
+    incidentId: string,
+    hypothesisId: string,
+    status: HypothesisStatus,
+    user: User,
+    notes?: { statement?: string; reason?: string }
+  ): { hypothesis: Hypothesis; incident: Incident; investigation: Investigation } {
+    const inv = this.getInvestigation(incidentId);
+    if (!inv) {
+      throw new Error(`No investigation found for incident ${incidentId}`);
+    }
+
+    const hyp = inv.hypotheses.find((h) => h.id === hypothesisId);
+    if (!hyp) {
+      throw new Error(`Hypothesis ${hypothesisId} not found in investigation`);
+    }
+
+    const now = new Date().toISOString();
+    hyp.status = status;
+
+    const incident = dbCache.incidents.find((i) => i.id === incidentId);
+    if (!incident) {
+      throw new Error(`Incident ${incidentId} not found`);
+    }
+
+    if (status === 'CONFIRMED') {
+      hyp.confirmedBy = user.name;
+      hyp.confirmedTimestamp = now;
+      hyp.confirmedRootCauseStatement =
+        notes?.statement || `${hyp.title}: ${hyp.description}`;
+
+      // Mark other hypotheses back to PROPOSED if previously confirmed
+      inv.hypotheses.forEach((other) => {
+        if (other.id !== hypothesisId && other.status === 'CONFIRMED') {
+          other.status = 'PROPOSED';
+        }
+      });
+
+      inv.confirmedRootCause = {
+        hypothesisId: hyp.id,
+        title: hyp.title,
+        statement: hyp.confirmedRootCauseStatement,
+        confirmedBy: user.name,
+        confirmedTimestamp: now,
+      };
+
+      incident.confirmedRootCause = inv.confirmedRootCause;
+
+      this.addTimelineEvent({
+        incidentId,
+        eventType: 'RESOLUTION',
+        title: `Root Cause Confirmed: ${hyp.title}`,
+        description: `Human-confirmed by ${user.name} (${user.role}): "${hyp.confirmedRootCauseStatement}"`,
+        actorName: user.name,
+        actorRole: user.role,
+        metadata: {
+          hypothesisId: hyp.id,
+          confidence: hyp.confidence,
+          statement: hyp.confirmedRootCauseStatement,
+        },
+      });
+    } else if (status === 'REJECTED') {
+      hyp.rejectedBy = user.name;
+      hyp.rejectedTimestamp = now;
+      hyp.rejectedReason = notes?.reason || 'Rejected following engineer review.';
+
+      if (inv.confirmedRootCause?.hypothesisId === hypothesisId) {
+        delete inv.confirmedRootCause;
+        delete incident.confirmedRootCause;
+      }
+
+      this.addTimelineEvent({
+        incidentId,
+        eventType: 'INVESTIGATION',
+        title: `Hypothesis Rejected: ${hyp.title}`,
+        description: `Rejected by ${user.name} (${user.role}). Reason: ${hyp.rejectedReason}`,
+        actorName: user.name,
+        actorRole: user.role,
+        metadata: {
+          hypothesisId: hyp.id,
+          reason: hyp.rejectedReason,
+        },
+      });
+    } else if (status === 'UNDER_REVIEW') {
+      if (inv.confirmedRootCause?.hypothesisId === hypothesisId) {
+        delete inv.confirmedRootCause;
+        delete incident.confirmedRootCause;
+      }
+    }
+
+    this.saveInvestigation(inv);
+    saveDatabase(dbCache);
+
+    return { hypothesis: hyp, incident, investigation: inv };
+  },
+
+  addInvestigationChatMessage(
+    incidentId: string,
+    message: { role: 'user' | 'assistant'; content: string; groundedEvidence?: string[] }
+  ): Investigation {
+    const inv = this.getInvestigation(incidentId);
+    if (!inv) {
+      throw new Error(`No investigation found for incident ${incidentId}`);
+    }
+    if (!inv.chatHistory) {
+      inv.chatHistory = [];
+    }
+    inv.chatHistory.push({
+      id: `chat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      role: message.role,
+      content: message.content,
+      timestamp: new Date().toISOString(),
+      groundedEvidence: message.groundedEvidence,
+    });
+    this.saveInvestigation(inv);
+    return inv;
   },
 
   // RESET DEMO DATA
@@ -1081,6 +1316,7 @@ export const db = {
       incidents: SEED_INCIDENTS,
       evidence: SEED_EVIDENCE,
       timelineEvents: SEED_TIMELINE_EVENTS,
+      investigations: getInitialSeedInvestigations(),
     };
     saveDatabase(dbCache);
   },

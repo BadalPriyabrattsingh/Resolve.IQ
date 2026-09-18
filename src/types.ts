@@ -68,6 +68,7 @@ export type TimelineEventType =
   | 'SEVERITY_CHANGE'
   | 'ASSIGNMENT'
   | 'EVIDENCE_ADDED'
+  | 'INVESTIGATION'
   | 'COMMENT'
   | 'RESOLUTION';
 
@@ -104,6 +105,117 @@ export interface Incident {
   impactSummary: string;
   createdTimestamp: string;
   updatedTimestamp: string;
+  confirmedRootCause?: {
+    hypothesisId: string;
+    title: string;
+    statement: string;
+    confirmedBy: string;
+    confirmedTimestamp: string;
+  };
+}
+
+// ================= AI INVESTIGATION TYPES =================
+
+export type FindingClassification =
+  | 'OBSERVED_FACT'
+  | 'CORRELATION'
+  | 'AI_HYPOTHESIS'
+  | 'RECOMMENDATION'
+  | 'HUMAN_CONFIRMED';
+
+export type HypothesisStatus =
+  | 'PROPOSED'
+  | 'UNDER_REVIEW'
+  | 'CONFIRMED'
+  | 'REJECTED';
+
+export interface RecommendedRunbook {
+  id: string;
+  title: string;
+  description: string;
+  command?: string;
+  requiresApproval: boolean;
+  docUrl?: string;
+}
+
+export interface Hypothesis {
+  id: string;
+  incidentId: string;
+  title: string;
+  description: string;
+  confidence: number; // 0 to 100
+  status: HypothesisStatus;
+  supportingEvidence: string[];
+  contradictingEvidence: string[];
+  conclusion: string;
+  recommendedSteps: string[];
+  recommendedRunbooks: RecommendedRunbook[];
+  createdAt: string;
+  confirmedBy?: string;
+  confirmedTimestamp?: string;
+  confirmedRootCauseStatement?: string;
+  rejectedBy?: string;
+  rejectedTimestamp?: string;
+  rejectedReason?: string;
+}
+
+export interface InvestigationFinding {
+  id: string;
+  classification: FindingClassification;
+  title: string;
+  detail: string;
+  sourceEvidenceId?: string;
+  timestamp?: string;
+}
+
+export interface InvestigationTimelineItem {
+  id: string;
+  timestamp: string;
+  title: string;
+  type: 'ALERT' | 'METRIC' | 'DEPLOYMENT' | 'LOG' | 'DATABASE' | 'SYSTEM';
+  isAbnormal: boolean;
+  classification: FindingClassification;
+  detail: string;
+}
+
+export interface InvestigationChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  groundedEvidence?: string[];
+}
+
+export type InvestigationStatus = 'IDLE' | 'ANALYZING' | 'COMPLETED' | 'FAILED';
+
+export interface Investigation {
+  id: string;
+  incidentId: string;
+  status: InvestigationStatus;
+  startedAt?: string;
+  completedAt?: string;
+  findings: InvestigationFinding[];
+  timeline: InvestigationTimelineItem[];
+  hypotheses: Hypothesis[];
+  recommendedInvestigationSteps: string[];
+  recommendedRunbooks: RecommendedRunbook[];
+  confirmedRootCause?: {
+    hypothesisId: string;
+    title: string;
+    statement: string;
+    confirmedBy: string;
+    confirmedTimestamp: string;
+  };
+  chatHistory: InvestigationChatMessage[];
+  summary: string;
+}
+
+export interface IncidentTrendPoint {
+  date: string;
+  label: string;
+  count: number;
+  sev1Sev2: number;
+  resolved: number;
 }
 
 export interface DashboardStats {
@@ -114,7 +226,9 @@ export interface DashboardStats {
   sev3Count: number;
   sev4Count: number;
   avgResolutionTimeMinutes: number;
+  avgAcknowledgeTimeMinutes: number;
   activeInvestigationsCount: number;
+  activeHypothesesCount: number;
   servicesHealth: {
     total: number;
     healthy: number;
@@ -124,6 +238,7 @@ export interface DashboardStats {
   };
   severityDistribution: { severity: Severity; count: number }[];
   statusDistribution: { status: IncidentStatus; count: number }[];
+  incidentTrend: IncidentTrendPoint[];
 }
 
 export interface RolePermissions {
@@ -135,6 +250,8 @@ export interface RolePermissions {
   canAddComment: boolean;
   canManageServices: boolean;
   canDeleteIncident: boolean;
+  canManageInvestigation: boolean;
+  canConfirmHypothesis: boolean;
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
@@ -147,6 +264,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canAddComment: true,
     canManageServices: true,
     canDeleteIncident: true,
+    canManageInvestigation: true,
+    canConfirmHypothesis: true,
   },
   INCIDENT_MANAGER: {
     canCreateIncident: true,
@@ -157,6 +276,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canAddComment: true,
     canManageServices: true,
     canDeleteIncident: false,
+    canManageInvestigation: true,
+    canConfirmHypothesis: true,
   },
   ENGINEER: {
     canCreateIncident: true,
@@ -167,6 +288,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canAddComment: true,
     canManageServices: false,
     canDeleteIncident: false,
+    canManageInvestigation: true,
+    canConfirmHypothesis: true,
   },
   VIEWER: {
     canCreateIncident: false,
@@ -177,5 +300,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canAddComment: false,
     canManageServices: false,
     canDeleteIncident: false,
+    canManageInvestigation: false,
+    canConfirmHypothesis: false,
   },
 };

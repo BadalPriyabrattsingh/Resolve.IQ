@@ -2,7 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { db } from './server/db.ts';
-import { ROLE_PERMISSIONS, User } from './src/types.ts';
+import { ROLE_PERMISSIONS, User, HypothesisStatus } from './src/types.ts';
+import { runInvestigationAnalysis, answerInvestigationQuery } from './server/aiInvestigation.ts';
 
 declare global {
   namespace Express {
@@ -186,7 +187,7 @@ async function startServer() {
     }
   });
 
-  app.patch('/api/incidents/:id', (req: Request, res: Response) => {
+  const handleUpdateIncident = (req: Request, res: Response) => {
     const user = req.currentUser!;
     const perms = ROLE_PERMISSIONS[user.role];
     const { status, severity, assignedEngineer, incidentManager, customerImpact, impactSummary, description, changeNote } = req.body;
@@ -221,7 +222,10 @@ async function startServer() {
     } catch (err) {
       res.status(400).json({ error: (err as Error).message });
     }
-  });
+  };
+
+  app.patch('/api/incidents/:id', handleUpdateIncident);
+  app.put('/api/incidents/:id', handleUpdateIncident);
 
   app.delete('/api/incidents/:id', (req: Request, res: Response) => {
     const user = req.currentUser!;
@@ -319,7 +323,165 @@ async function startServer() {
     res.status(201).json({ event });
   });
 
-  // 8. Demo reset
+  // 8. AI Investigation Endpoints
+  app.get('/api/incidents/:id/investigation', (req: Request, res: Response) => {
+    const incidentId = req.params.id;
+    const incident = db.getIncidentById(incidentId);
+    if (!incident) {
+      return res.status(404).json({ error: 'Incident not found' });
+    }
+
+    let investigation = db.getInvestigation(incidentId);
+    if (!investigation) {
+      // Lazy generate initial deterministic investigation for incident
+      const evidence = db.getEvidenceForIncident(incidentId);
+      const timeline = db.getTimelineForIncident(incidentId);
+      const initial = runInvestigationAnalysis(incident, evidence, timeline);
+      // in case async, wait or fallback
+      investigation = db.getInvestigation(incidentId);
+    }
+    res.json({ investigation });
+  });
+
+  app.post('/api/incidents/:id/investigation/start', async (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageInvestigation) {
+      return res.status(403).json({ error: `User with role ${user.role} is not permitted to trigger investigations` });
+    }
+
+    const incidentId = req.params.id;
+    const incident = db.getIncidentById(incidentId);
+    if (!incident) {
+      return res.status(404).json({ error: 'Incident not found' });
+    }
+
+    const evidence = db.getEvidenceForIncident(incidentId);
+    const timeline = db.getTimelineForIncident(incidentId);
+
+    try {
+      const investigation = await runInvestigationAnalysis(incident, evidence, timeline);
+      db.saveInvestigation(investigation);
+
+      db.addTimelineEvent({
+        incidentId,
+        eventType: 'INVESTIGATION',
+        title: 'AI Investigation Executed',
+        description: `Triggered by ${user.name} (${user.role}). Analyzed ${evidence.length} evidence records and generated ${investigation.hypotheses.length} hypotheses.`,
+        actorName: user.name,
+        actorRole: user.role,
+        metadata: {
+          hypothesisCount: investigation.hypotheses.length,
+          evidenceCount: evidence.length,
+        },
+      });
+
+      res.json({ investigation });
+    } catch (err) {
+      console.error('Failed to run investigation analysis:', err);
+      res.status(500).json({ error: 'Failed to process AI investigation' });
+    }
+  });
+
+  const handleHypothesisStatusUpdate = (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    const { status, statement, reason } = req.body as {
+      status: HypothesisStatus;
+      statement?: string;
+      reason?: string;
+    };
+
+    if (status === 'CONFIRMED' || status === 'REJECTED') {
+      if (!perms.canConfirmHypothesis) {
+        return res
+          .status(403)
+          .json({ error: `Role ${user.role} cannot confirm or reject root cause hypotheses. Only Engineers or Incident Managers can verify.` });
+      }
+    } else {
+      if (!perms.canManageInvestigation) {
+        return res.status(403).json({ error: `Role ${user.role} cannot update hypothesis status.` });
+      }
+    }
+
+    if (!['PROPOSED', 'UNDER_REVIEW', 'CONFIRMED', 'REJECTED'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid hypothesis status' });
+    }
+
+    try {
+      const result = db.updateHypothesisStatus(req.params.id, req.params.hypothesisId, status, user, {
+        statement,
+        reason,
+      });
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  };
+
+  app.post('/api/incidents/:id/hypotheses/:hypothesisId/status', handleHypothesisStatusUpdate);
+  app.patch('/api/incidents/:id/hypotheses/:hypothesisId/status', handleHypothesisStatusUpdate);
+  app.post('/api/incidents/:id/investigation/hypotheses/:hypothesisId/status', handleHypothesisStatusUpdate);
+  app.patch('/api/incidents/:id/investigation/hypotheses/:hypothesisId/status', handleHypothesisStatusUpdate);
+
+  app.post('/api/incidents/:id/investigation/chat', async (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const incidentId = req.params.id;
+    const { message } = req.body;
+
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({ error: 'Message text is required' });
+    }
+
+    const incident = db.getIncidentById(incidentId);
+    if (!incident) {
+      return res.status(404).json({ error: 'Incident not found' });
+    }
+
+    let investigation = db.getInvestigation(incidentId);
+    if (!investigation) {
+      const evidence = db.getEvidenceForIncident(incidentId);
+      const timeline = db.getTimelineForIncident(incidentId);
+      investigation = await runInvestigationAnalysis(incident, evidence, timeline);
+      db.saveInvestigation(investigation);
+    }
+
+    const evidenceList = db.getEvidenceForIncident(incidentId);
+
+    try {
+      // Record user query
+      db.addInvestigationChatMessage(incidentId, {
+        role: 'user',
+        content: message.trim(),
+      });
+
+      // Get AI answer strictly grounded in incident evidence
+      const { answer, groundedEvidence } = await answerInvestigationQuery(
+        incident,
+        investigation,
+        evidenceList,
+        message.trim()
+      );
+
+      // Record assistant reply
+      const updatedInv = db.addInvestigationChatMessage(incidentId, {
+        role: 'assistant',
+        content: answer,
+        groundedEvidence,
+      });
+
+      res.json({
+        reply: answer,
+        groundedEvidence,
+        investigation: updatedInv,
+      });
+    } catch (err) {
+      console.error('Failed to answer investigation query:', err);
+      res.status(500).json({ error: 'Failed to answer investigation query' });
+    }
+  });
+
+  // 9. Demo reset
   app.post('/api/reset-demo', (req: Request, res: Response) => {
     db.resetDemoData();
     res.json({ message: 'Demo data reset successfully', stats: db.getDashboardStats() });
