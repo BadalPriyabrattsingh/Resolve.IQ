@@ -1,0 +1,6 @@
+{
+  "name": "ResolveIQ",
+  "description": "Enterprise SRE & software engineering incident management platform with real-time tracking, timeline telemetry, evidence capture, and service mapping.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
