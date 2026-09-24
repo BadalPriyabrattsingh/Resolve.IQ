@@ -35,6 +35,7 @@ export interface Service {
   criticality: ServiceCriticality;
   repositoryUrl: string;
   healthStatus: ServiceHealthStatus;
+  dependencies?: string[];
   createdAt: string;
   updatedAt: string;
 }

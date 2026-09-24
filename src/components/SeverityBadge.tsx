@@ -19,27 +19,42 @@ export const SeverityBadge: React.FC<SeverityBadgeProps> = ({
   const getStyles = () => {
     switch (severity) {
       case 'SEV-1':
-        return 'bg-[#e07a5f]/15 text-[#fca5a5] border-[#e07a5f]/40 hover:bg-[#e07a5f]/25';
+        return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 dark:border-red-500/30';
       case 'SEV-2':
-        return 'bg-orange-500/15 text-orange-400 border-orange-500/40 hover:bg-orange-500/25';
+        return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20 dark:border-orange-500/30';
       case 'SEV-3':
-        return 'bg-amber-500/15 text-amber-300 border-amber-500/40 hover:bg-amber-500/25';
+        return 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20 dark:border-amber-500/30';
       case 'SEV-4':
-        return 'bg-teal-500/15 text-[#2dd4bf] border-teal-500/40 hover:bg-teal-500/25';
+        return 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20 dark:border-teal-500/30';
       default:
-        return 'bg-slate-800 text-slate-300 border-slate-700';
+        return 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20';
     }
   };
 
   const getSize = () => {
     switch (size) {
       case 'sm':
-        return 'text-xs px-2 py-0.5';
+        return 'text-[11px] px-1.5 py-0.5';
       case 'lg':
-        return 'text-sm px-3 py-1 font-bold';
+        return 'text-xs px-2.5 py-1 font-semibold';
       case 'md':
       default:
-        return 'text-xs px-2.5 py-1 font-semibold';
+        return 'text-[11px] px-2 py-0.5 font-medium';
+    }
+  };
+
+  const getDot = () => {
+    switch (severity) {
+      case 'SEV-1':
+        return 'bg-red-500';
+      case 'SEV-2':
+        return 'bg-orange-500';
+      case 'SEV-3':
+        return 'bg-amber-500';
+      case 'SEV-4':
+        return 'bg-teal-500';
+      default:
+        return 'bg-slate-400';
     }
   };
 
@@ -47,22 +62,12 @@ export const SeverityBadge: React.FC<SeverityBadgeProps> = ({
     <span
       id={`sev-badge-${severity.toLowerCase()}`}
       onClick={interactive ? onClick : undefined}
-      className={`inline-flex items-center gap-1.5 rounded border font-mono tracking-wider whitespace-nowrap transition-colors ${getStyles()} ${getSize()} ${
-        interactive ? 'cursor-pointer' : ''
+      className={`inline-flex items-center gap-1.5 rounded-md border font-mono tracking-normal whitespace-nowrap transition-colors select-none ${getStyles()} ${getSize()} ${
+        interactive ? 'cursor-pointer hover:opacity-85' : ''
       } ${className}`}
     >
-      <span
-        className={`w-1.5 h-1.5 rounded-full ${
-          severity === 'SEV-1'
-            ? 'bg-red-500 animate-pulse'
-            : severity === 'SEV-2'
-            ? 'bg-orange-500'
-            : severity === 'SEV-3'
-            ? 'bg-amber-400'
-            : 'bg-sky-400'
-        }`}
-      />
-      {severity}
+      <span className={`w-1.5 h-1.5 rounded-full ${getDot()}`} />
+      <span>{severity}</span>
     </span>
   );
 };

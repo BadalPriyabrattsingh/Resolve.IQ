@@ -130,13 +130,13 @@ export function App() {
 
   if (isLoading || !currentUser) {
     return (
-      <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center justify-center p-4">
-        <div className="w-8 h-8 border-2 border-[#2dd4bf] border-t-transparent rounded-full animate-spin mb-3" />
-        <div className="text-sm text-slate-200 font-medium flex items-center">
+      <div className="min-h-screen bg-[var(--bg-page)] flex flex-col items-center justify-center p-4 transition-colors">
+        <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mb-3" />
+        <div className="text-sm text-slate-800 dark:text-slate-200 font-medium flex items-center">
           <span>RESOLVE</span>
-          <span className="text-[#2dd4bf] ml-0.5 font-bold">IQ</span>
+          <span className="text-teal-600 dark:text-teal-400 ml-0.5 font-bold">IQ</span>
         </div>
-        <div className="text-xs text-slate-500 mt-1 font-mono">
+        <div className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-mono">
           Connecting to telemetry feeds...
         </div>
       </div>
@@ -160,7 +160,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] text-slate-100 font-sans flex flex-col antialiased selection:bg-teal-500/20 selection:text-teal-200">
+    <div className="min-h-screen bg-[var(--bg-page)] text-[var(--text-primary)] font-sans flex flex-col antialiased selection:bg-teal-500/15 selection:text-teal-700 dark:selection:text-teal-300 transition-colors">
       {/* Top Navigation */}
       <Navbar
         currentUser={currentUser}

@@ -149,18 +149,18 @@ Customer reports 100% of batch payments failing with "500 Internal Gateway Error
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#0D151C] border border-[#1A2833] rounded-xl max-w-xl w-full p-6 shadow-2xl space-y-4 my-8">
-        <div className="flex items-center justify-between pb-3 border-b border-[#1A2833]">
+    <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] rounded-xl max-w-xl w-full p-6 shadow-2xl space-y-4 my-8">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-teal-500/20 text-[#2dd4bf] border border-teal-500/40">
+            <div className="p-1.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
               <Paperclip className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold font-mono text-slate-100">
+              <h2 className="text-sm font-bold font-mono text-slate-900 dark:text-slate-100">
                 Attach Incident Evidence
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Store logs, metric snapshots, stack traces, and database state.
               </p>
             </div>
@@ -168,14 +168,14 @@ Customer reports 100% of batch payments failing with "500 Internal Gateway Error
 
           <button
             onClick={onClose}
-            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-[#101C25] cursor-pointer"
+            className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {formError && (
-          <div className="p-2.5 rounded bg-[#e07a5f]/15 border border-[#e07a5f]/40 text-[#fca5a5] text-xs font-mono">
+          <div className="p-2.5 rounded bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-300 text-xs font-mono">
             {formError}
           </div>
         )}
@@ -184,11 +184,11 @@ Customer reports 100% of batch payments failing with "500 Internal Gateway Error
           {/* Type selector & Quick sample button */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 space-y-1">
-              <label className="text-slate-300 font-semibold block">Evidence Type</label>
+              <label className="text-slate-700 dark:text-slate-300 font-semibold block">Evidence Type</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as EvidenceType)}
-                className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
+                className="w-full p-2 bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded text-slate-900 dark:text-slate-200 focus:outline-none focus:border-teal-500"
               >
                 <option value="LOG">Application Log (Stack Trace / Kibana)</option>
                 <option value="METRIC">Metric Snapshot (Latency, Throughput, Error %)</option>
@@ -205,7 +205,7 @@ Customer reports 100% of batch payments failing with "500 Internal Gateway Error
             <button
               type="button"
               onClick={applySample}
-              className="mt-5 px-2.5 py-2 text-[11px] rounded bg-[#101C25] hover:bg-[#182631] text-[#2dd4bf] border border-teal-500/30 transition-colors whitespace-nowrap cursor-pointer"
+              className="mt-5 px-2.5 py-2 text-[11px] rounded bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-teal-700 dark:text-teal-300 border border-teal-500/30 transition-colors whitespace-nowrap cursor-pointer"
             >
               Load Realistic Template
             </button>
@@ -213,8 +213,8 @@ Customer reports 100% of batch payments failing with "500 Internal Gateway Error
 
           {/* Title */}
           <div className="space-y-1">
-            <label className="text-slate-300 font-semibold block">
-              Evidence Title <span className="text-[#2dd4bf]">*</span>
+            <label className="text-slate-700 dark:text-slate-300 font-semibold block">
+              Evidence Title <span className="text-teal-600 dark:text-teal-400">*</span>
             </label>
             <input
               type="text"
@@ -222,26 +222,26 @@ Customer reports 100% of batch payments failing with "500 Internal Gateway Error
               placeholder="e.g. Kibana Exception Log: ConnectionPoolTimeoutException"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
+              className="w-full p-2 bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded text-slate-900 dark:text-slate-200 focus:outline-none focus:border-teal-500"
             />
           </div>
 
           {/* Source */}
           <div className="space-y-1">
-            <label className="text-slate-300 font-semibold block">Data Source / Tool</label>
+            <label className="text-slate-700 dark:text-slate-300 font-semibold block">Data Source / Tool</label>
             <input
               type="text"
               placeholder="e.g. Datadog APM, Kibana prod-eu-1, CloudWatch, PostgreSQL"
               value={source}
               onChange={(e) => setSource(e.target.value)}
-              className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
+              className="w-full p-2 bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded text-slate-900 dark:text-slate-200 focus:outline-none focus:border-teal-500"
             />
           </div>
 
           {/* Content (code / log / text) */}
           <div className="space-y-1">
-            <label className="text-slate-300 font-semibold block">
-              Log Output / Telemetry Payload <span className="text-[#2dd4bf]">*</span>
+            <label className="text-slate-700 dark:text-slate-300 font-semibold block">
+              Log Output / Telemetry Payload <span className="text-teal-600 dark:text-teal-400">*</span>
             </label>
             <textarea
               rows={7}
@@ -249,22 +249,22 @@ Customer reports 100% of batch payments failing with "500 Internal Gateway Error
               placeholder="Paste raw log lines, error stack traces, JSON payloads, or SQL query output..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full p-2.5 font-mono text-[11px] bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf] leading-relaxed"
+              className="w-full p-2.5 font-mono text-[11px] bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded text-slate-900 dark:text-slate-200 focus:outline-none focus:border-teal-500 leading-relaxed"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#1A2833]">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-white/[0.08]">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 text-xs font-mono rounded bg-[#101C25] text-slate-300 hover:bg-[#182631] cursor-pointer"
+              className="px-3.5 py-1.5 text-xs font-mono rounded bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-1.5 text-xs font-mono font-bold rounded bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] shadow-md shadow-teal-950/40 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-1.5 text-xs font-mono font-bold rounded bg-teal-600 hover:bg-teal-500 text-white shadow-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <Paperclip className="w-3.5 h-3.5" />
               <span>{isSubmitting ? 'Attaching...' : 'Attach Evidence'}</span>

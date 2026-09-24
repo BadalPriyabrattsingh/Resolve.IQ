@@ -61,154 +61,127 @@ export const GlobalTimelineView: React.FC<GlobalTimelineViewProps> = ({
 
   const filteredEvents = allEvents.filter((ev) => {
     if (filterType === 'ALL') return true;
-    return ev.eventType === filterType;
+    if (filterType === 'STATUS' && ev.eventType === 'STATUS_CHANGE') return true;
+    if (filterType === 'SEVERITY' && ev.eventType === 'SEVERITY_CHANGE') return true;
+    if (filterType === 'EVIDENCE' && ev.eventType === 'EVIDENCE_ADDED') return true;
+    if (filterType === 'COMMENT' && ev.eventType === 'COMMENT') return true;
+    return false;
   });
 
-  const getTimelineIcon = (eventType: TimelineEvent['eventType']) => {
-    switch (eventType) {
+  const getEventBadge = (type: string) => {
+    switch (type) {
       case 'CREATED':
-        return AlertTriangle;
+        return { label: 'Created', color: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' };
       case 'STATUS_CHANGE':
-        return Radio;
+        return { label: 'Status', color: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20' };
       case 'SEVERITY_CHANGE':
-        return Flame;
-      case 'ASSIGNMENT':
-        return UserIcon;
+        return { label: 'Severity', color: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' };
       case 'EVIDENCE_ADDED':
-        return Paperclip;
+        return { label: 'Evidence', color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' };
       case 'COMMENT':
-        return MessageSquare;
-      case 'RESOLUTION':
-        return CheckCircle2;
+        return { label: 'Comment', color: 'bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/[0.08]' };
+      case 'RESOLVED':
+        return { label: 'Resolved', color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' };
       default:
-        return Clock;
-    }
-  };
-
-  const getNodeColor = (eventType: TimelineEvent['eventType']) => {
-    switch (eventType) {
-      case 'CREATED':
-        return 'bg-[#e07a5f] text-white ring-4 ring-[#e07a5f]/20';
-      case 'STATUS_CHANGE':
-        return 'bg-[#2dd4bf] text-[#080D11] ring-4 ring-teal-500/20';
-      case 'SEVERITY_CHANGE':
-        return 'bg-amber-500 text-white ring-4 ring-amber-500/20';
-      case 'RESOLUTION':
-        return 'bg-emerald-500 text-white ring-4 ring-emerald-500/20';
-      case 'ASSIGNMENT':
-        return 'bg-teal-600 text-white ring-4 ring-teal-600/20';
-      case 'COMMENT':
-        return 'bg-[#182631] text-slate-300 ring-4 ring-[#182631]/40';
-      default:
-        return 'bg-[#182631] text-slate-300 ring-4 ring-[#182631]/40';
+        return { label: type, color: 'bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/[0.08]' };
     }
   };
 
   return (
-    <div className="space-y-5 pb-12">
+    <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#1E2631]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
         <div>
-          <h1 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#2dd4bf]" />
-            <span>Audit & Timeline Feed</span>
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <span>Global Incident Audit Feed</span>
+            <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 font-mono border border-slate-200 dark:border-white/[0.08]">
+              {filteredEvents.length} events
+            </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Chronological audit log of state transitions, comments, and mitigations.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Immutable, cross-incident chronological audit trail across all clusters.
           </p>
         </div>
 
         {/* Filter */}
-        <div className="flex items-center gap-1.5 text-xs">
-          <span className="text-[11px] text-slate-500">Event:</span>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="bg-[#0B0F14] border border-[#1E2631] rounded px-2.5 py-1 text-xs text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
-          >
-            <option value="ALL">All Events</option>
-            <option value="CREATED">Created</option>
-            <option value="STATUS_CHANGE">Status Changes</option>
-            <option value="SEVERITY_CHANGE">Severity Changes</option>
-            <option value="EVIDENCE_ADDED">Evidence Added</option>
-            <option value="RESOLUTION">Resolutions</option>
-            <option value="COMMENT">Comments</option>
-          </select>
+        <div className="flex items-center gap-1 bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] p-1 rounded-lg text-xs font-mono shadow-xs">
+          {['ALL', 'STATUS', 'SEVERITY', 'EVIDENCE', 'COMMENT'].map((t) => (
+            <button
+              key={t}
+              onClick={() => setFilterType(t)}
+              className={`px-2.5 py-1 rounded transition-colors cursor-pointer ${
+                filterType === t
+                  ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 font-semibold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
         </div>
       </div>
 
-      {loading ? (
-        <div className="p-12 text-center text-slate-400 font-mono text-xs">
-          <div className="w-5 h-5 border-2 border-[#2dd4bf] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          Loading audit events...
-        </div>
-      ) : (
-        <div className="p-4 rounded-lg bg-[#111720] border border-[#1E2631]">
-          <div className="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-[#1E2631]">
-            {filteredEvents.map((event) => {
-              const Icon = getTimelineIcon(event.eventType);
+      {/* Feed List */}
+      <div className="rounded-xl bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] p-4 shadow-xs">
+        {loading ? (
+          <div className="py-16 text-center text-slate-400 font-mono text-xs space-y-2">
+            <div className="w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div>Streaming cluster events...</div>
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="py-12 text-center text-slate-500 font-mono text-xs">
+            No events match the selected filter.
+          </div>
+        ) : (
+          <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-slate-200 dark:before:bg-white/[0.08]">
+            {filteredEvents.map((ev) => {
+              const badge = getEventBadge(ev.eventType);
 
               return (
-                <div key={event.id} className="relative group">
-                  <div
-                    className={`absolute -left-6 top-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${getNodeColor(
-                      event.eventType
-                    )}`}
-                  >
-                    <Icon className="w-2.5 h-2.5" />
-                  </div>
+                <div key={ev.id} className="relative group">
+                  {/* Timeline dot */}
+                  <div className="absolute -left-6 top-1.5 w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600 border-2 border-white dark:border-[#121820] group-hover:bg-teal-500 transition-colors" />
 
-                  <div className="p-3.5 rounded-lg bg-[#070D12] border border-[#1A2833] hover:border-teal-500/40 transition-colors space-y-1.5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 text-xs">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        {event.incidentNumber && (
+                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold ${badge.color}`}>
+                          {badge.label}
+                        </span>
+
+                        {ev.incidentNumber && (
                           <button
-                            onClick={() => onSelectIncident(event.incidentId)}
-                            className="font-mono text-xs font-bold text-[#2dd4bf] hover:underline flex items-center gap-1 cursor-pointer"
+                            onClick={() => onSelectIncident(ev.incidentId)}
+                            className="font-mono font-bold text-teal-700 dark:text-teal-400 hover:underline cursor-pointer inline-flex items-center gap-1"
                           >
-                            <span>{event.incidentNumber}</span>
+                            <span>{ev.incidentNumber}</span>
                             <ArrowUpRight className="w-3 h-3" />
                           </button>
                         )}
-                        <span className="text-xs font-bold text-slate-200">{event.title}</span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#101C25] text-slate-400 border border-[#1A2833]">
-                          {event.eventType}
-                        </span>
+
+                        <span className="font-semibold text-slate-900 dark:text-slate-200">{ev.title}</span>
                       </div>
 
-                      <span className="text-[11px] font-mono text-slate-500">
-                        {new Date(event.timestamp).toLocaleString([], {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">
-                      {event.description}
-                    </p>
-
-                    <div className="pt-1.5 border-t border-[#182631] flex items-center justify-between text-[10px] font-mono text-slate-500">
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-400">{event.actorName}</span>
-                        <span className="px-1 py-0.2 rounded bg-[#0D151C] text-slate-400 border border-[#1A2833]">
-                          {event.actorRole}
-                        </span>
-                      </div>
-                      {event.incidentTitle && (
-                        <span className="text-slate-500 truncate max-w-xs">{event.incidentTitle}</span>
+                      {ev.description && (
+                        <p className="text-slate-600 dark:text-slate-400 text-xs font-sans leading-relaxed">
+                          {ev.description}
+                        </p>
                       )}
+
+                      <div className="text-[11px] font-mono text-slate-400 dark:text-slate-500 flex items-center gap-2">
+                        <span>Actor: {ev.actorName}</span>
+                        <span>•</span>
+                        <span>{new Date(ev.timestamp).toLocaleString()}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

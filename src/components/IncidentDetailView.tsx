@@ -422,8 +422,8 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
   if (loading) {
     return (
       <div className="p-16 flex flex-col items-center justify-center min-h-[500px] space-y-3">
-        <div className="w-9 h-9 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-        <div className="font-mono text-sm text-slate-200 font-semibold">
+        <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <div className="font-mono text-sm text-slate-800 dark:text-slate-200 font-semibold">
           Synchronizing Incident Workspace ({incidentId})...
         </div>
         <div className="font-mono text-xs text-slate-500">
@@ -436,21 +436,21 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
   // Error State
   if (error || !incident) {
     return (
-      <div className="p-8 max-w-xl mx-auto my-12 bg-slate-900 border border-slate-800 rounded-xl text-center space-y-4">
-        <AlertTriangle className="w-10 h-10 text-red-400 mx-auto" />
-        <h2 className="text-base font-bold text-slate-100 font-mono">Incident Unavailable</h2>
-        <p className="text-xs text-slate-400">{error || 'Incident record not found in cluster database.'}</p>
+      <div className="p-8 max-w-xl mx-auto my-12 bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] rounded-xl text-center space-y-4 shadow-xs">
+        <AlertTriangle className="w-10 h-10 text-red-500 mx-auto" />
+        <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 font-mono">Incident Unavailable</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{error || 'Incident record not found in cluster database.'}</p>
         <div className="flex items-center justify-center gap-3 pt-2">
           <button
             onClick={fetchIncidentData}
-            className="px-3.5 py-1.5 text-xs font-mono rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 inline-flex items-center gap-1.5"
+            className="px-3.5 py-1.5 text-xs font-mono rounded bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/[0.08] inline-flex items-center gap-1.5 cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Retry</span>
           </button>
           <button
             onClick={onBack}
-            className="px-3.5 py-1.5 text-xs font-mono rounded bg-red-600 hover:bg-red-500 text-white"
+            className="px-3.5 py-1.5 text-xs font-mono rounded bg-teal-600 hover:bg-teal-500 text-white cursor-pointer shadow-xs"
           >
             Back to Dashboard
           </button>
@@ -473,7 +473,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
         <button
           onClick={onBack}
           id="btn-back-to-incidents"
-          className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition-colors p-1 -ml-1 rounded hover:bg-slate-900 cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors p-1 -ml-1 rounded hover:bg-slate-100 dark:hover:bg-white/[0.04] cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Operations Dashboard</span>
@@ -483,7 +483,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
           {/* Quick Refresh */}
           <button
             onClick={fetchIncidentData}
-            className="text-slate-400 hover:text-slate-200 p-1.5 rounded hover:bg-slate-900 transition-colors inline-flex items-center gap-1 text-[11px]"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 p-1.5 rounded hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors inline-flex items-center gap-1 text-[11px] cursor-pointer"
             title="Refresh Incident Workspace"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -493,11 +493,11 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
           {/* Quick Share / Copy ID */}
           <button
             onClick={() => handleCopyId(incident.incidentNumber)}
-            className="text-slate-400 hover:text-slate-200 p-1.5 rounded hover:bg-slate-900 transition-colors inline-flex items-center gap-1 text-[11px]"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 p-1.5 rounded hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors inline-flex items-center gap-1 text-[11px] cursor-pointer"
             title="Copy Incident Identifier"
           >
             {copiedId === incident.incidentNumber ? (
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             ) : (
               <Copy className="w-3.5 h-3.5" />
             )}
@@ -507,14 +507,14 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
       </div>
 
       {/* 2. SRE MISSION CONTROL WORKSPACE BANNER */}
-      <div className="rounded-xl border border-[#1A2833] bg-[#0D151C] shadow-xl overflow-hidden">
+      <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#121820] shadow-xs overflow-hidden">
         {/* Banner Top Header */}
-        <div className="p-4 md:p-5 border-b border-[#1A2833] bg-[#080D11]">
+        <div className="p-4 md:p-5 border-b border-slate-200 dark:border-white/[0.08] bg-slate-50/60 dark:bg-[#0C1015]">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Title & Identifiers */}
             <div className="space-y-2">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="font-mono text-sm font-bold text-slate-200 tracking-wider bg-[#070D12] px-2 py-0.5 rounded border border-[#1A2833]">
+                <span className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300 tracking-wider bg-white dark:bg-[#18202A] px-2 py-0.5 rounded border border-slate-200 dark:border-white/[0.08]">
                   {incident.incidentNumber}
                 </span>
                 <SeverityBadge severity={incident.severity} size="md" />
@@ -523,39 +523,39 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                 {/* Service tag */}
                 <button
                   onClick={() => onSelectService(incident.serviceId)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#070D12] hover:bg-[#101C25] text-slate-200 border border-[#1A2833] text-xs font-mono transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-white dark:bg-[#18202A] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/[0.08] text-xs font-mono transition-colors cursor-pointer"
                 >
-                  <Server className="w-3.5 h-3.5 text-[#2dd4bf]" />
+                  <Server className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                   <span>{incident.serviceName}</span>
                   {linkedService && (
                     <span
                       className={`text-[9px] px-1 rounded font-bold ${
                         linkedService.healthStatus === 'HEALTHY'
-                          ? 'bg-teal-500/20 text-[#2dd4bf]'
+                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
                           : linkedService.healthStatus === 'DEGRADED'
-                          ? 'bg-amber-500/20 text-amber-300'
-                          : 'bg-[#e07a5f]/20 text-[#fca5a5]'
+                          ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                          : 'bg-red-500/10 text-red-700 dark:text-red-400'
                       }`}
                     >
                       {linkedService.healthStatus}
                     </span>
                   )}
-                  <ExternalLink className="w-3 h-3 text-slate-500 ml-0.5" />
+                  <ExternalLink className="w-3 h-3 text-slate-400 ml-0.5" />
                 </button>
               </div>
 
-              <h1 className="text-lg md:text-xl font-bold font-sans text-slate-100 leading-snug">
+              <h1 className="text-base md:text-lg font-bold font-sans text-slate-900 dark:text-slate-100 leading-snug">
                 {incident.title}
               </h1>
             </div>
 
             {/* Quick Action Buttons */}
-            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               {/* Quick Acknowledge if Detected */}
               {incident.status === 'DETECTED' && permissions.canChangeStatus && (
                 <button
                   onClick={handleAcknowledge}
-                  className="px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white font-mono text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-md bg-teal-600 hover:bg-teal-500 text-white font-mono text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Acknowledge (SLA)</span>
@@ -566,9 +566,9 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
               {permissions.canChangeSeverity && (
                 <button
                   onClick={() => setPendingSeverity(incident.severity === 'SEV-1' ? 'SEV-2' : 'SEV-1')}
-                  className="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 font-mono text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/[0.08] font-mono text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <Flame className="w-3.5 h-3.5 text-red-400" />
+                  <Flame className="w-3.5 h-3.5 text-orange-500" />
                   <span>Change Severity</span>
                 </button>
               )}
@@ -587,7 +587,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                         : 'RESOLVED';
                     setPendingStatus(nextSt);
                   }}
-                  className="px-3.5 py-1.5 rounded-md bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold inline-flex items-center gap-1.5 shadow-md shadow-red-950/40 transition-colors cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-md bg-teal-600 hover:bg-teal-500 text-white font-mono text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                 >
                   <span>Advance Status</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -598,15 +598,15 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
         </div>
 
         {/* 6 Key Operational Parameters Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-y sm:divide-y-0 divide-slate-800/80 bg-slate-950/70 text-xs font-mono">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-y sm:divide-y-0 divide-slate-200 dark:divide-white/[0.06] bg-slate-50/30 dark:bg-[#0C1015]/40 text-xs font-mono">
           {/* 1. Current Status */}
           <div className="p-3.5 space-y-1">
             <span className="text-[10px] text-slate-500 uppercase tracking-wider block">CURRENT STATUS</span>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="font-bold text-slate-200">{incident.status}</span>
+              <span className="w-2 h-2 rounded-full bg-teal-500" />
+              <span className="font-bold text-slate-900 dark:text-slate-200">{incident.status}</span>
             </div>
-            <div className="text-[10px] text-slate-400">
+            <div className="text-[10px] text-slate-500 dark:text-slate-400">
               {incident.acknowledgedTime ? 'Acknowledged' : 'Awaiting Ack'}
             </div>
           </div>
@@ -614,11 +614,11 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
           {/* 2. Severity & SLA */}
           <div className="p-3.5 space-y-1">
             <span className="text-[10px] text-slate-500 uppercase tracking-wider block">SEVERITY LEVEL</span>
-            <div className="font-bold text-red-400 flex items-center gap-1.5">
+            <div className="font-bold text-orange-600 dark:text-orange-400 flex items-center gap-1.5">
               <Flame className="w-3.5 h-3.5" />
               <span>{incident.severity}</span>
             </div>
-            <div className="text-[10px] text-slate-400">
+            <div className="text-[10px] text-slate-500 dark:text-slate-400">
               {incident.severity === 'SEV-1' ? 'SLA: 15m Ack / 60m Res' : 'SLA: 30m Ack / 4h Res'}
             </div>
           </div>
@@ -626,8 +626,8 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
           {/* 3. Affected Service */}
           <div className="p-3.5 space-y-1">
             <span className="text-[10px] text-slate-500 uppercase tracking-wider block">AFFECTED SERVICE</span>
-            <div className="font-bold text-slate-200 truncate">{incident.serviceName}</div>
-            <div className="text-[10px] text-slate-400">
+            <div className="font-bold text-slate-900 dark:text-slate-200 truncate">{incident.serviceName}</div>
+            <div className="text-[10px] text-slate-500 dark:text-slate-400">
               Tier: {linkedService?.criticality || 'Tier-0'} ({linkedService?.healthStatus || 'Active'})
             </div>
           </div>
@@ -639,7 +639,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
               {permissions.canAssignEngineer && (
                 <button
                   onClick={() => handleAssignEngineer(currentUser.name)}
-                  className="text-[9px] text-blue-400 hover:underline"
+                  className="text-[9px] text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
                 >
                   Assign Me
                 </button>
@@ -649,7 +649,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
               value={incident.assignedEngineer || ''}
               onChange={(e) => handleAssignEngineer(e.target.value)}
               disabled={!permissions.canAssignEngineer}
-              className="w-full bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-300 font-mono focus:outline-none disabled:opacity-50"
+              className="w-full bg-white dark:bg-[#18202A] border border-slate-200 dark:border-white/[0.08] rounded px-1.5 py-0.5 text-xs text-slate-800 dark:text-slate-300 font-mono focus:outline-none disabled:opacity-50"
             >
               <option value="">-- Unassigned --</option>
               {allUsers.map((u) => (
@@ -670,7 +670,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
               value={incident.incidentManager || ''}
               onChange={(e) => handleAssignCommander(e.target.value)}
               disabled={!permissions.canAssignEngineer}
-              className="w-full bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-slate-300 font-mono focus:outline-none disabled:opacity-50"
+              className="w-full bg-white dark:bg-[#18202A] border border-slate-200 dark:border-white/[0.08] rounded px-1.5 py-0.5 text-xs text-slate-800 dark:text-slate-300 font-mono focus:outline-none disabled:opacity-50"
             >
               <option value="">-- Unassigned --</option>
               {allUsers
@@ -689,19 +689,19 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             <span className="text-[10px] text-slate-500 uppercase tracking-wider block">CUSTOMER IMPACT</span>
             <div className="flex items-center gap-1.5">
               {incident.customerImpact ? (
-                <span className="inline-flex items-center gap-1 text-red-400 font-bold">
+                <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-bold">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>ACTIVE IMPACT</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-emerald-400 font-bold">
+                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>NO IMPACT</span>
                 </span>
               )}
             </div>
-            <div className="text-[10px] text-slate-400 flex items-center gap-1">
-              <Clock className="w-3 h-3 text-slate-500" />
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <Clock className="w-3 h-3 text-slate-400" />
               <span>{elapsedMinutes}m outage elapsed</span>
             </div>
           </div>
@@ -709,10 +709,10 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
 
         {/* Impact Summary Line */}
         {incident.impactSummary && (
-          <div className="px-4 py-2.5 bg-red-950/20 border-t border-red-950/40 text-xs text-red-300 font-sans flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+          <div className="px-4 py-2.5 bg-red-500/5 border-t border-red-500/20 text-xs text-red-700 dark:text-red-300 font-sans flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
             <div>
-              <strong className="font-semibold text-red-200">Customer Impact Detail: </strong>
+              <strong className="font-semibold text-red-800 dark:text-red-200">Customer Impact Detail: </strong>
               {incident.impactSummary}
             </div>
           </div>
@@ -720,7 +720,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
       </div>
 
       {/* 3. MAIN WORKSPACE 4-TAB NAVIGATION */}
-      <div className="border-b border-[#1A2833] flex items-center justify-between gap-4 overflow-x-auto">
+      <div className="border-b border-slate-200 dark:border-white/[0.08] flex items-center justify-between gap-4 overflow-x-auto">
         <div className="flex items-center gap-1 font-mono text-xs">
           {/* Tab 1: AI Investigation */}
           <button
@@ -728,14 +728,14 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             onClick={() => setCenterTab('investigation')}
             className={`px-3.5 py-2.5 rounded-t-lg font-bold transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               centerTab === 'investigation'
-                ? 'bg-[#101C25] text-[#2dd4bf] border-[#2dd4bf]'
-                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-[#0D151C]'
+                ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent hover:bg-slate-100 dark:hover:bg-white/[0.04]'
             }`}
           >
-            <Sparkles className="w-4 h-4 text-[#2dd4bf]" />
+            <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400" />
             <span>AI Investigation</span>
             {investigation && (
-              <span className="px-1.5 py-0.2 rounded text-[10px] bg-teal-500/20 text-[#2dd4bf] border border-teal-500/30">
+              <span className="px-1.5 py-0.2 rounded text-[10px] bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20">
                 {investigation.confirmedRootCause || incident.confirmedRootCause
                   ? 'VERIFIED'
                   : `${investigation.hypotheses.length} Hypotheses`}
@@ -749,13 +749,13 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             onClick={() => setCenterTab('actions')}
             className={`px-3.5 py-2.5 rounded-t-lg font-bold transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               centerTab === 'actions'
-                ? 'bg-[#101C25] text-slate-100 border-[#e07a5f]'
-                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-[#0D151C]'
+                ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent hover:bg-slate-100 dark:hover:bg-white/[0.04]'
             }`}
           >
-            <Wrench className="w-4 h-4 text-amber-400" />
+            <Wrench className="w-4 h-4 text-amber-500" />
             <span>Recommended Actions</span>
-            <span className="px-1.5 py-0.2 rounded text-[10px] bg-[#080E13] text-slate-300 border border-[#182631]">
+            <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
               Runbooks
             </span>
           </button>
@@ -766,13 +766,13 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             onClick={() => setCenterTab('timeline')}
             className={`px-3.5 py-2.5 rounded-t-lg font-bold transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               centerTab === 'timeline'
-                ? 'bg-[#101C25] text-slate-100 border-[#2dd4bf]'
-                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-[#0D151C]'
+                ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent hover:bg-slate-100 dark:hover:bg-white/[0.04]'
             }`}
           >
-            <Clock className="w-4 h-4 text-[#2dd4bf]" />
+            <Clock className="w-4 h-4 text-teal-600 dark:text-teal-400" />
             <span>Timeline</span>
-            <span className="px-1.5 py-0.2 rounded text-[10px] bg-[#080E13] text-slate-300 border border-[#182631]">
+            <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
               {timelineList.length}
             </span>
           </button>
@@ -783,13 +783,13 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             onClick={() => setCenterTab('evidence')}
             className={`px-3.5 py-2.5 rounded-t-lg font-bold transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               centerTab === 'evidence'
-                ? 'bg-[#101C25] text-slate-100 border-teal-400'
-                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-[#0D151C]'
+                ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent hover:bg-slate-100 dark:hover:bg-white/[0.04]'
             }`}
           >
-            <Paperclip className="w-4 h-4 text-teal-400" />
+            <Paperclip className="w-4 h-4 text-teal-600 dark:text-teal-400" />
             <span>Evidence Vault</span>
-            <span className="px-1.5 py-0.2 rounded text-[10px] bg-[#080E13] text-slate-300 border border-[#182631]">
+            <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.08]">
               {evidenceList.length}
             </span>
           </button>
@@ -800,9 +800,9 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
           id="btn-attach-evidence-header"
           onClick={() => onOpenAddEvidence(incident.id)}
           disabled={currentUser.role === 'VIEWER'}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#101C25] hover:bg-[#162734] text-[#2dd4bf] border border-teal-500/30 text-xs font-mono font-semibold transition-colors disabled:opacity-40 cursor-pointer mb-1 shrink-0"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white dark:bg-[#18202A] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-teal-700 dark:text-teal-300 border border-slate-200 dark:border-white/[0.08] text-xs font-mono font-semibold transition-colors disabled:opacity-40 cursor-pointer mb-1 shrink-0 shadow-2xs"
         >
-          <Plus className="w-3.5 h-3.5 text-[#2dd4bf]" />
+          <Plus className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
           <span>Attach Evidence</span>
         </button>
       </div>
@@ -810,7 +810,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
       {/* Quick Comment / War Room Note Form */}
       <form
         onSubmit={handlePostComment}
-        className="p-3.5 rounded-xl bg-[#0D151C] border border-[#1A2833] flex items-center gap-2.5"
+        className="p-3.5 rounded-xl bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] flex items-center gap-2.5 shadow-xs"
       >
         <div className="relative flex-1">
           <input
@@ -823,13 +823,13 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             value={quickComment}
             onChange={(e) => setQuickComment(e.target.value)}
             disabled={currentUser.role === 'VIEWER' || submittingComment}
-            className="w-full pl-3 pr-3 py-2 text-xs bg-[#070D12] border border-[#1A2833] rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#2dd4bf] font-mono"
+            className="w-full pl-3 pr-3 py-2 text-xs bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded-md text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 font-mono"
           />
         </div>
         <button
           type="submit"
           disabled={!quickComment.trim() || submittingComment || currentUser.role === 'VIEWER'}
-          className="px-3.5 py-2 text-xs font-mono font-bold rounded bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] disabled:opacity-40 flex items-center gap-1.5 transition-colors cursor-pointer"
+          className="px-3.5 py-2 text-xs font-mono font-bold rounded bg-teal-600 hover:bg-teal-500 text-white disabled:opacity-40 flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
         >
           <Send className="w-3.5 h-3.5" />
           <span>Post Note</span>
@@ -853,8 +853,8 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
               const el = document.getElementById(`evidence-card-${evId}`);
               if (el) {
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                el.classList.add('ring-2', 'ring-purple-500');
-                setTimeout(() => el.classList.remove('ring-2', 'ring-purple-500'), 3000);
+                el.classList.add('ring-2', 'ring-teal-500');
+                setTimeout(() => el.classList.remove('ring-2', 'ring-teal-500'), 3000);
               }
             }, 150);
           }}
@@ -864,20 +864,20 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
       {/* TAB 2: RECOMMENDED ACTIONS & RUNBOOKS */}
       {centerTab === 'actions' && (
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+          <div className="p-4 rounded-xl bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] space-y-3 shadow-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <Wrench className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
+                <Wrench className="w-4 h-4 text-amber-500" />
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
                   Recommended Mitigation Runbooks & Diagnostic Procedures
                 </h3>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                 AUDITED RUNBOOKS
               </span>
             </div>
 
-            <p className="text-xs text-slate-300 font-sans leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 font-sans leading-relaxed">
               The following operational procedures have been matched to the service architecture and active incident indicators. SREs can execute or log runbook steps with automated timeline verification.
             </p>
 
@@ -917,19 +917,19 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                     key={rb.id}
                     className={`p-4 rounded-lg border transition-all ${
                       isExecuted
-                        ? 'bg-emerald-950/20 border-emerald-500/30'
-                        : 'bg-slate-950/80 border-slate-800'
+                        ? 'bg-emerald-500/5 border-emerald-500/30'
+                        : 'bg-slate-50 dark:bg-[#0C1015] border-slate-200 dark:border-white/[0.08]'
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold text-slate-100">{rb.title}</span>
+                        <span className="text-xs font-mono font-bold text-slate-900 dark:text-slate-100">{rb.title}</span>
                         {rb.requiresApproval ? (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
                             REQUIRES SRE APPROVAL
                           </span>
                         ) : (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-300 border border-blue-500/30">
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">
                             AUTO-EXECUTABLE
                           </span>
                         )}
@@ -940,14 +940,14 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                         disabled={isRunning || isExecuted || currentUser.role === 'VIEWER'}
                         className={`px-3 py-1.5 text-xs font-mono font-bold rounded flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 ${
                           isExecuted
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                            : 'bg-red-600 hover:bg-red-500 text-white'
+                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                            : 'bg-teal-600 hover:bg-teal-500 text-white shadow-xs'
                         }`}
                       >
                         {isRunning ? (
                           <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         ) : isExecuted ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         ) : (
                           <Play className="w-3.5 h-3.5" />
                         )}
@@ -955,18 +955,18 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                       </button>
                     </div>
 
-                    <p className="text-xs text-slate-400 font-sans mb-3">{rb.description}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-sans mb-3">{rb.description}</p>
 
                     {rb.command && (
-                      <div className="p-2 rounded bg-slate-900 border border-slate-800/80 font-mono text-[11px] text-slate-300 flex items-center justify-between gap-2 overflow-x-auto">
-                        <div className="flex items-center gap-2 shrink-0 text-slate-500">
+                      <div className="p-2 rounded bg-white dark:bg-[#18202A] border border-slate-200 dark:border-white/[0.08] font-mono text-[11px] text-slate-800 dark:text-slate-300 flex items-center justify-between gap-2 overflow-x-auto">
+                        <div className="flex items-center gap-2 shrink-0 text-slate-400">
                           <Terminal className="w-3.5 h-3.5" />
                           <span>$</span>
                         </div>
                         <code className="flex-1 whitespace-nowrap">{rb.command}</code>
                         <button
                           onClick={() => handleCopyId(rb.command!)}
-                          className="shrink-0 text-slate-500 hover:text-slate-300 p-1"
+                          className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
@@ -982,10 +982,10 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
 
       {/* TAB 3: CHRONOLOGICAL TIMELINE */}
       {centerTab === 'timeline' && (
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+        <div className="p-4 rounded-xl bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] space-y-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
             <div>
-              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
                 Incident Audit Chronology
               </h3>
               <p className="text-[11px] text-slate-500 font-mono mt-0.5">
@@ -996,19 +996,19 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             {/* Timeline Filter Controls */}
             <div className="flex items-center gap-2">
               <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search timeline..."
                   value={timelineSearch}
                   onChange={(e) => setTimelineSearch(e.target.value)}
-                  className="pl-7 pr-2.5 py-1 text-xs bg-slate-950 border border-slate-800 rounded text-slate-200 placeholder-slate-500 font-mono focus:outline-none"
+                  className="pl-7 pr-2.5 py-1 text-xs bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 font-mono focus:outline-none focus:border-teal-500"
                 />
               </div>
               <select
                 value={timelineFilter}
                 onChange={(e) => setTimelineFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-slate-300 font-mono focus:outline-none"
+                className="bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded px-2 py-1 text-xs text-slate-800 dark:text-slate-300 font-mono focus:outline-none"
               >
                 <option value="ALL">All Events</option>
                 <option value="STATUS">Status Changes</option>
@@ -1021,35 +1021,35 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
           </div>
 
           {filteredTimeline.length === 0 ? (
-            <div className="py-12 text-center text-slate-500 font-mono text-xs space-y-2">
-              <Clock className="w-6 h-6 text-slate-600 mx-auto" />
+            <div className="py-12 text-center text-slate-400 font-mono text-xs space-y-2">
+              <Clock className="w-6 h-6 text-slate-400 mx-auto" />
               <div>No timeline events match the filter criteria.</div>
               {timelineSearch && (
                 <button
                   onClick={() => setTimelineSearch('')}
-                  className="text-blue-400 hover:underline cursor-pointer"
+                  className="text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
                 >
                   Clear search
                 </button>
               )}
             </div>
           ) : (
-            <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+            <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-slate-200 dark:before:bg-white/[0.08]">
               {filteredTimeline.map((event) => {
                 const Icon = getTimelineIcon(event.eventType);
 
                 return (
                   <div key={event.id} className="relative group">
-                    <div className="absolute -left-6 top-0 w-5 h-5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center shrink-0">
+                    <div className="absolute -left-6 top-0 w-5 h-5 rounded-full bg-slate-100 dark:bg-[#18202A] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
                       <Icon className="w-2.5 h-2.5" />
                     </div>
 
-                    <div className="p-3 rounded-lg bg-slate-950/70 border border-slate-800/80 space-y-1 hover:border-slate-700 transition-colors">
+                    <div className="p-3 rounded-lg bg-slate-50/70 dark:bg-[#0C1015]/60 border border-slate-200 dark:border-white/[0.06] space-y-1 hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-xs font-bold text-slate-200">
+                        <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-200">
                           {event.title}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-500 whitespace-nowrap">
+                        <span className="text-[10px] font-mono text-slate-400 whitespace-nowrap">
                           {new Date(event.timestamp).toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -1059,14 +1059,14 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                       </div>
 
                       {event.description && (
-                        <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
+                        <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans leading-relaxed">
                           {event.description}
                         </p>
                       )}
 
                       {event.actorName && (
                         <div className="text-[11px] text-slate-500 font-mono">
-                          Operator: <span className="text-slate-300">{event.actorName}</span>
+                          Operator: <span className="text-slate-700 dark:text-slate-300">{event.actorName}</span>
                         </div>
                       )}
                     </div>
@@ -1080,10 +1080,10 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
 
       {/* TAB 4: EVIDENCE VAULT */}
       {centerTab === 'evidence' && (
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+        <div className="p-4 rounded-xl bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] space-y-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
             <div>
-              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
                 Ground Truth Evidence Vault
               </h3>
               <p className="text-[11px] text-slate-500 font-mono mt-0.5">
@@ -1094,7 +1094,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             {/* Evidence Search & Filter Controls */}
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search evidence..."
@@ -1103,7 +1103,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                     setEvidenceSearch(e.target.value);
                     setEvidencePage(1);
                   }}
-                  className="pl-7 pr-2.5 py-1 text-xs bg-slate-950 border border-slate-800 rounded text-slate-200 placeholder-slate-500 font-mono focus:outline-none"
+                  className="pl-7 pr-2.5 py-1 text-xs bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 font-mono focus:outline-none focus:border-teal-500"
                 />
               </div>
 
@@ -1118,8 +1118,8 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                     }}
                     className={`px-2 py-0.5 text-[11px] font-mono rounded border transition-colors cursor-pointer ${
                       evidenceFilter === t
-                        ? 'bg-slate-800 text-slate-100 border-slate-600 font-bold'
-                        : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                        ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/30 font-bold'
+                        : 'bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/[0.06] hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                   >
                     {t}
@@ -1130,15 +1130,15 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
           </div>
 
           {filteredEvidence.length === 0 ? (
-            <div className="py-12 text-center text-slate-500 font-mono text-xs space-y-3">
-              <Paperclip className="w-8 h-8 text-slate-600 mx-auto" />
+            <div className="py-12 text-center text-slate-400 font-mono text-xs space-y-3">
+              <Paperclip className="w-8 h-8 text-slate-400 mx-auto" />
               <div>No evidence records found matching current filter.</div>
               <button
                 onClick={() => onOpenAddEvidence(incident.id)}
                 disabled={currentUser.role === 'VIEWER'}
-                className="px-3 py-1.5 text-xs font-mono font-semibold rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 inline-flex items-center gap-1.5"
+                className="px-3 py-1.5 text-xs font-mono font-semibold rounded bg-teal-600 hover:bg-teal-500 text-white inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Plus className="w-3.5 h-3.5 text-red-400" />
+                <Plus className="w-3.5 h-3.5 text-white" />
                 <span>Attach First Evidence</span>
               </button>
             </div>
@@ -1151,23 +1151,23 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                   <div
                     key={item.id}
                     id={`evidence-card-${item.id}`}
-                    className="p-3.5 rounded-lg bg-slate-950/80 border border-slate-800 hover:border-slate-750 transition-colors space-y-2"
+                    className="p-3.5 rounded-lg bg-slate-50/70 dark:bg-[#0C1015]/60 border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.15] transition-colors space-y-2"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 shrink-0">
+                        <div className="w-6 h-6 rounded bg-white dark:bg-[#18202A] border border-slate-200 dark:border-white/[0.08] flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0">
                           <Icon className="w-3.5 h-3.5" />
                         </div>
                         <div>
-                          <span className="font-mono text-xs font-bold text-slate-200">{item.title}</span>
-                          <span className="ml-2 text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                          <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-200">{item.title}</span>
+                          <span className="ml-2 text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/[0.06]">
                             {item.type}
                           </span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono text-slate-500">
+                        <span className="text-[10px] font-mono text-slate-400">
                           {new Date(item.timestamp).toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -1176,7 +1176,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                         {permissions.canAddEvidence && (
                           <button
                             onClick={() => setEvidenceToDelete(item)}
-                            className="text-slate-500 hover:text-red-400 p-1 rounded transition-colors"
+                            className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 p-1 rounded transition-colors cursor-pointer"
                             title="Delete Evidence"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1185,11 +1185,11 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-[11px] font-mono text-slate-400">
-                      Source: <span className="text-slate-300">{item.source}</span>
+                    <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                      Source: <span className="text-slate-700 dark:text-slate-300">{item.source}</span>
                     </div>
 
-                    <pre className="p-2.5 rounded bg-slate-900/90 border border-slate-800/80 font-mono text-[11px] text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+                    <pre className="p-2.5 rounded bg-white dark:bg-[#18202A] border border-slate-200 dark:border-white/[0.08] font-mono text-[11px] text-slate-800 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed">
                       {item.content}
                     </pre>
                   </div>
@@ -1198,7 +1198,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
 
               {/* Evidence Pagination Controls */}
               {filteredEvidence.length > evidencePageSize && (
-                <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs font-mono text-slate-400">
+                <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-white/[0.08] text-xs font-mono text-slate-500 dark:text-slate-400">
                   <div>
                     Showing {(evidencePage - 1) * evidencePageSize + 1} to{' '}
                     {Math.min(filteredEvidence.length, evidencePage * evidencePageSize)} of{' '}
@@ -1208,18 +1208,18 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                     <button
                       onClick={() => setEvidencePage((p) => Math.max(1, p - 1))}
                       disabled={evidencePage === 1}
-                      className="px-2 py-1 rounded bg-slate-950 border border-slate-800 text-slate-300 hover:text-slate-100 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-1"
+                      className="px-2 py-1 rounded bg-white dark:bg-[#18202A] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-1 cursor-pointer"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
                       <span>Prev</span>
                     </button>
-                    <span className="font-bold text-slate-200">
+                    <span className="font-bold text-slate-900 dark:text-slate-200">
                       {evidencePage} / {totalEvidencePages}
                     </span>
                     <button
                       onClick={() => setEvidencePage((p) => Math.min(totalEvidencePages, p + 1))}
                       disabled={evidencePage === totalEvidencePages}
-                      className="px-2 py-1 rounded bg-slate-950 border border-slate-800 text-slate-300 hover:text-slate-100 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-1"
+                      className="px-2 py-1 rounded bg-white dark:bg-[#18202A] border border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 disabled:opacity-30 disabled:cursor-not-allowed inline-flex items-center gap-1 cursor-pointer"
                     >
                       <span>Next</span>
                       <ChevronRight className="w-3.5 h-3.5" />

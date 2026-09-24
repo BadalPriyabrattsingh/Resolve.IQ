@@ -73,15 +73,15 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
   return (
     <div className="space-y-5 pb-12">
       {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#1E2631]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
         <div>
-          <h1 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span>Incident Directory</span>
-            <span className="text-xs px-2 py-0.2 rounded bg-[#111720] text-slate-400 font-mono border border-[#1E2631]">
+            <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 font-mono border border-slate-200 dark:border-white/[0.08]">
               {filtered.length} of {incidents.length}
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Historical and active production incident records with audit telemetry.
           </p>
         </div>
@@ -91,8 +91,8 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
           disabled={currentUser.role === 'VIEWER'}
           className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all ${
             currentUser.role === 'VIEWER'
-              ? 'bg-[#111720] text-slate-600 border border-[#1E2631] cursor-not-allowed'
-              : 'bg-[#e07a5f] hover:bg-[#d66a4f] text-white shadow-sm cursor-pointer'
+              ? 'bg-slate-100 dark:bg-white/[0.04] text-slate-400 dark:text-slate-600 border border-slate-200 dark:border-white/[0.08] cursor-not-allowed'
+              : 'bg-red-600 hover:bg-red-500 text-white shadow-xs cursor-pointer'
           }`}
         >
           <AlertTriangle className="w-3.5 h-3.5" />
@@ -101,16 +101,16 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
       </div>
 
       {/* Filter Bar */}
-      <div className="p-3 rounded-lg bg-[#111720] border border-[#1E2631] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
+      <div className="p-3 rounded-lg bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by ID, title, summary, engineer..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#0B0F14] border border-[#1E2631] rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#2dd4bf]/60 font-mono"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded-md text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-teal-500 font-mono"
           />
         </div>
 
@@ -122,7 +122,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
             <select
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="bg-[#0B0F14] border border-[#1E2631] rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
+              className="bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded px-2 py-1 text-xs text-slate-800 dark:text-slate-300 focus:outline-none focus:border-teal-500"
             >
               <option value="ALL">All</option>
               <option value="SEV-1">SEV-1</option>
@@ -138,7 +138,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#0B0F14] border border-[#1E2631] rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
+              className="bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded px-2 py-1 text-xs text-slate-800 dark:text-slate-300 focus:outline-none focus:border-teal-500"
             >
               <option value="ALL">All</option>
               <option value="ACTIVE">Active</option>
@@ -157,7 +157,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
             <select
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value)}
-              className="bg-[#0B0F14] border border-[#1E2631] rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-[#2dd4bf] max-w-[150px] truncate"
+              className="bg-slate-50 dark:bg-[#0C1015] border border-slate-200 dark:border-white/[0.08] rounded px-2 py-1 text-xs text-slate-800 dark:text-slate-300 focus:outline-none focus:border-teal-500 max-w-[150px] truncate"
             >
               <option value="ALL">All Services</option>
               {services.map((srv) => (
@@ -176,7 +176,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                 setStatusFilter('ALL');
                 setServiceFilter('ALL');
               }}
-              className="text-[11px] font-mono text-[#2dd4bf] hover:underline px-1.5 py-1 cursor-pointer"
+              className="text-[11px] font-mono text-teal-600 dark:text-teal-400 hover:underline px-1.5 py-1 cursor-pointer"
             >
               Clear
             </button>
@@ -185,10 +185,10 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
       </div>
 
       {/* Incidents Table */}
-      <div className="rounded-xl bg-[#0D151C] border border-[#1A2833] overflow-hidden shadow-xl">
+      <div className="rounded-xl bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-[#070D12] text-slate-400 font-mono uppercase text-[10px] border-b border-[#1A2833] tracking-wider">
+          <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+            <thead className="bg-slate-50 dark:bg-[#0C1015] text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200 dark:border-white/[0.08] tracking-wider">
               <tr>
                 <th className="py-3 px-4">Incident ID</th>
                 <th className="py-3 px-4">Title & Context</th>
@@ -201,11 +201,11 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                 <th className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1A2833] font-sans">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06] font-sans">
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-500 font-mono">
-                    <Filter className="w-8 h-8 mx-auto mb-2 text-slate-600" />
+                    <Filter className="w-8 h-8 mx-auto mb-2 text-slate-400 dark:text-slate-600" />
                     <div>No incidents found matching criteria.</div>
                     <button
                       onClick={() => {
@@ -214,7 +214,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                         setStatusFilter('ALL');
                         setServiceFilter('ALL');
                       }}
-                      className="mt-2 text-xs text-[#2dd4bf] hover:underline cursor-pointer"
+                      className="mt-2 text-xs text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
                     >
                       Reset filters
                     </button>
@@ -229,15 +229,15 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                       key={incident.id}
                       id={`incident-item-${incident.id}`}
                       onClick={() => onSelectIncident(incident.id)}
-                      className={`group hover:bg-[#101C25]/70 transition-colors cursor-pointer ${
+                      className={`group hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer ${
                         isPrimaryDemo ? 'bg-teal-500/5' : ''
                       }`}
                     >
                       {/* ID */}
-                      <td className="py-3.5 px-4 whitespace-nowrap font-mono font-bold text-slate-100 group-hover:text-[#2dd4bf] transition-colors">
+                      <td className="py-3.5 px-4 whitespace-nowrap font-mono font-bold text-slate-900 dark:text-slate-100 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                         <div className="flex items-center gap-2">
                           {isPrimaryDemo && (
-                            <span className="w-2 h-2 rounded-full bg-[#2dd4bf] animate-pulse shrink-0" />
+                            <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse shrink-0" />
                           )}
                           <span>{incident.incidentNumber}</span>
                         </div>
@@ -245,10 +245,10 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
 
                       {/* Title & description */}
                       <td className="py-3.5 px-4 max-w-sm">
-                        <div className="font-semibold text-slate-200 group-hover:text-white line-clamp-1">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-teal-600 dark:group-hover:text-teal-300 line-clamp-1">
                           {incident.title}
                         </div>
-                        <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
                           {incident.impactSummary || incident.description}
                         </div>
                       </td>
@@ -265,7 +265,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
 
                       {/* Service */}
                       <td className="py-3.5 px-3 whitespace-nowrap">
-                        <span className="font-mono text-xs text-slate-300 bg-[#070D12] px-2.5 py-1 rounded border border-[#1A2833]">
+                        <span className="font-mono text-xs text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/[0.04] px-2.5 py-1 rounded border border-slate-200 dark:border-white/[0.06]">
                           {incident.serviceName}
                         </span>
                       </td>
@@ -275,8 +275,8 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                         <span
                           className={`font-mono text-[11px] px-1.5 py-0.5 rounded border ${
                             incident.environment === 'Production'
-                              ? 'bg-teal-500/10 text-teal-300 border-teal-500/30'
-                              : 'bg-[#070D12] text-slate-400 border-[#1A2833]'
+                              ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20'
+                              : 'bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/[0.06]'
                           }`}
                         >
                           {incident.environment}
@@ -285,14 +285,14 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
 
                       {/* Assigned Lead */}
                       <td className="py-3.5 px-3 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-slate-300 font-mono text-[11px]">
-                          <UserIcon className="w-3.5 h-3.5 text-slate-500" />
+                        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                          <UserIcon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                           <span>{incident.assignedEngineer || 'Unassigned'}</span>
                         </div>
                       </td>
 
                       {/* Detected Time */}
-                      <td className="py-3.5 px-3 whitespace-nowrap font-mono text-slate-400 text-[11px]">
+                      <td className="py-3.5 px-3 whitespace-nowrap font-mono text-slate-500 dark:text-slate-400 text-[11px]">
                         {new Date(incident.detectedTime).toLocaleString([], {
                           month: 'short',
                           day: 'numeric',
@@ -303,7 +303,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
 
                       {/* Action */}
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 text-slate-400 group-hover:text-[#2dd4bf] font-mono text-xs">
+                        <span className="inline-flex items-center gap-1 text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 font-mono text-xs font-medium">
                           War Room <ArrowUpRight className="w-3.5 h-3.5" />
                         </span>
                       </td>

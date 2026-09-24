@@ -28,19 +28,19 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="pb-4 border-b border-[#1E2631]">
-        <h1 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
-          <Shield className="w-4 h-4 text-[#2dd4bf]" />
+      <div className="pb-4 border-b border-slate-200 dark:border-white/[0.08]">
+        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <Shield className="w-4 h-4 text-teal-600 dark:text-teal-400" />
           <span>Access Control & Team Personas</span>
         </h1>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Role-based permissions governing incident triage, service administration, and evidence management.
         </p>
       </div>
 
       {/* Active User Persona Cards */}
       <div>
-        <div className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-2.5">
+        <div className="text-xs font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2.5">
           Switch Active Persona
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -51,50 +51,27 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
               <div
                 key={u.id}
                 onClick={() => onSwitchUser(u.id)}
-                className={`p-3.5 rounded-lg border transition-colors cursor-pointer ${
+                className={`p-3.5 rounded-lg border transition-all cursor-pointer ${
                   isCurrent
-                    ? 'bg-[#16202B] border-[#2dd4bf]/40'
-                    : 'bg-[#111720] border-[#1E2631] hover:border-slate-700'
+                    ? 'bg-teal-500/10 border-teal-500/40 shadow-xs'
+                    : 'bg-white dark:bg-[#121820] border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.15] shadow-xs'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-[#1A232F] border border-[#232F3E] flex items-center justify-center text-xs font-mono font-bold text-slate-200 overflow-hidden">
-                    {u.avatarUrl ? (
-                      <img src={u.avatarUrl} alt={u.name} className="w-full h-full object-cover" />
-                    ) : (
-                      u.name[0]
-                    )}
+                  <div>
+                    <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">{u.name}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[150px]">{u.email}</div>
                   </div>
-
-                  <span
-                    className={`text-[10px] font-mono px-2 py-0.2 rounded border font-semibold ${
-                      u.role === 'ADMIN'
-                        ? 'bg-[#e07a5f]/15 text-[#fca5a5] border-[#e07a5f]/30'
-                        : u.role === 'INCIDENT_MANAGER'
-                        ? 'bg-teal-500/15 text-[#2dd4bf] border-teal-500/30'
-                        : u.role === 'ENGINEER'
-                        ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
-                        : 'bg-[#16202B] text-slate-400 border-[#232F3E]'
-                    }`}
-                  >
-                    {u.role}
-                  </span>
+                  {isCurrent && (
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-700 dark:text-teal-300 border border-teal-500/30 font-bold">
+                      ACTIVE
+                    </span>
+                  )}
                 </div>
 
-                <div className="font-medium text-sm text-slate-100">{u.name}</div>
-                <div className="text-[11px] text-slate-400 font-mono">{u.title}</div>
-                <div className="text-[10px] text-slate-500 font-mono mt-0.5">{u.email}</div>
-
-                <div className="mt-3 pt-2.5 border-t border-[#1E2631] flex items-center justify-between text-[11px] font-mono">
-                  <span className="text-slate-500">
-                    {isCurrent ? (
-                      <span className="text-[#2dd4bf] font-medium flex items-center gap-1">
-                        <Check className="w-3 h-3" /> Active persona
-                      </span>
-                    ) : (
-                      'Select to switch'
-                    )}
-                  </span>
+                <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-slate-500">Role:</span>
+                  <span className="text-teal-700 dark:text-teal-300 font-semibold">{u.role}</span>
                 </div>
               </div>
             );
@@ -102,50 +79,59 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
         </div>
       </div>
 
-      {/* Permissions Matrix Table */}
-      <div className="p-4 rounded-lg bg-[#111720] border border-[#1E2631]">
-        <div className="mb-3">
-          <h3 className="text-xs font-mono uppercase tracking-wider text-slate-300">
-            Permission Matrix
-          </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Real-time permission capabilities checked on user actions.
-          </p>
+      {/* RBAC Matrix Table */}
+      <div className="rounded-xl bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] overflow-hidden shadow-xs">
+        <div className="p-4 border-b border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Key className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 font-mono">
+              Permissions Matrix
+            </h2>
+          </div>
+          <span className="text-xs text-slate-500 font-mono">
+            Current: <span className="text-teal-600 dark:text-teal-400 font-bold">{currentUser.role}</span>
+          </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono text-slate-300">
-            <thead className="bg-[#0B0F14] text-slate-400 uppercase text-[10px] border-b border-[#1E2631]">
+          <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300 font-sans">
+            <thead className="bg-slate-50 dark:bg-[#0C1015] text-slate-500 dark:text-slate-400 font-mono uppercase text-[10px] border-b border-slate-200 dark:border-white/[0.08] tracking-wider">
               <tr>
-                <th className="py-2.5 px-3">Capability</th>
+                <th className="py-3 px-4">Capability</th>
+                <th className="py-3 px-4">Description</th>
                 {roles.map((r) => (
-                  <th key={r} className="py-2.5 px-3 text-center">
-                    <span className={r === currentUser.role ? 'text-[#2dd4bf] font-semibold' : ''}>
-                      {r} {r === currentUser.role && '(You)'}
+                  <th key={r} className="py-3 px-3 text-center">
+                    <span className={r === currentUser.role ? 'text-teal-600 dark:text-teal-400 font-bold' : ''}>
+                      {r.replace('_', ' ')}
                     </span>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1E2631] font-sans">
-              {permissionsList.map((p) => (
-                <tr key={p.key} className="hover:bg-[#16202B]/40 transition-colors">
-                  <td className="py-2.5 px-3">
-                    <div className="font-medium text-slate-200 text-xs">{p.label}</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">{p.desc}</div>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+              {permissionsList.map((perm) => (
+                <tr key={perm.key} className="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                  <td className="py-3 px-4 font-mono font-medium text-slate-900 dark:text-slate-200">
+                    {perm.label}
                   </td>
-                  {roles.map((role) => {
-                    const allowed = (ROLE_PERMISSIONS[role] as any)[p.key];
+                  <td className="py-3 px-4 text-slate-500 dark:text-slate-400 text-[11px]">
+                    {perm.desc}
+                  </td>
+                  {roles.map((r) => {
+                    const hasPerm = ROLE_PERMISSIONS[r][perm.key as keyof typeof ROLE_PERMISSIONS[UserRole]];
+                    const isUserRole = r === currentUser.role;
+
                     return (
-                      <td key={role} className="py-2.5 px-3 text-center">
-                        {allowed ? (
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500/10 text-[#2dd4bf]">
-                            <Check className="w-3 h-3" />
-                          </span>
+                      <td
+                        key={r}
+                        className={`py-3 px-3 text-center ${
+                          isUserRole ? 'bg-teal-500/5' : ''
+                        }`}
+                      >
+                        {hasPerm ? (
+                          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mx-auto" />
                         ) : (
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#16202B] text-slate-600">
-                            <Cross className="w-3 h-3" />
-                          </span>
+                          <Cross className="w-4 h-4 text-slate-300 dark:text-slate-600 mx-auto" />
                         )}
                       </td>
                     );
