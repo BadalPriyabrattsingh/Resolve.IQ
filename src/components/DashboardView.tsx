@@ -534,66 +534,73 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {services.map((srv) => {
-                const isDegraded = srv.healthStatus === 'DEGRADED';
-                const isOutage = srv.healthStatus === 'OUTAGE';
+            {services.length === 0 ? (
+              <div className="p-8 rounded-md bg-slate-50/60 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/[0.08] text-center text-xs text-slate-500 space-y-1">
+                <div className="font-medium text-slate-700 dark:text-slate-300">No Services Registered Yet</div>
+                <div>Register your first service to begin topology mapping and incident correlation.</div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {services.map((srv) => {
+                  const isDegraded = srv.healthStatus === 'DEGRADED';
+                  const isOutage = srv.healthStatus === 'OUTAGE';
 
-                return (
-                  <div
-                    key={srv.id}
-                    id={`service-card-${srv.id}`}
-                    onClick={() => onSelectService(srv.id)}
-                    className={`p-3 rounded-md border transition-all cursor-pointer ${
-                      isOutage
-                        ? 'bg-red-500/[0.04] border-red-500/30 hover:border-red-500/50'
-                        : isDegraded
-                        ? 'bg-amber-500/[0.04] border-amber-500/30 hover:border-amber-500/50'
-                        : 'bg-slate-50/70 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/[0.06] hover:border-teal-500/40 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
-                        {srv.name}
-                      </span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08]">
-                        {srv.criticality}
-                      </span>
-                    </div>
-
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mb-2">
-                      {srv.description}
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] font-mono pt-1.5 border-t border-slate-200/60 dark:border-white/[0.06]">
-                      <span className="text-slate-400 dark:text-slate-500">{srv.owningTeam}</span>
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            srv.healthStatus === 'HEALTHY'
-                              ? 'bg-emerald-500'
-                              : srv.healthStatus === 'DEGRADED'
-                              ? 'bg-amber-500'
-                              : 'bg-red-500'
-                          }`}
-                        />
-                        <span
-                          className={`font-medium ${
-                            srv.healthStatus === 'HEALTHY'
-                              ? 'text-emerald-700 dark:text-emerald-400'
-                              : srv.healthStatus === 'DEGRADED'
-                              ? 'text-amber-700 dark:text-amber-400'
-                              : 'text-red-700 dark:text-red-400'
-                          }`}
-                        >
-                          {srv.healthStatus}
+                  return (
+                    <div
+                      key={srv.id}
+                      id={`service-card-${srv.id}`}
+                      onClick={() => onSelectService(srv.id)}
+                      className={`p-3 rounded-md border transition-all cursor-pointer ${
+                        isOutage
+                          ? 'bg-red-500/[0.04] border-red-500/30 hover:border-red-500/50'
+                          : isDegraded
+                          ? 'bg-amber-500/[0.04] border-amber-500/30 hover:border-amber-500/50'
+                          : 'bg-slate-50/70 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/[0.06] hover:border-teal-500/40 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
+                          {srv.name}
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08]">
+                          {srv.criticality}
                         </span>
                       </div>
+
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mb-2">
+                        {srv.description}
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] font-mono pt-1.5 border-t border-slate-200/60 dark:border-white/[0.06]">
+                        <span className="text-slate-400 dark:text-slate-500">{srv.owningTeam}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              srv.healthStatus === 'HEALTHY'
+                                ? 'bg-emerald-500'
+                                : srv.healthStatus === 'DEGRADED'
+                                ? 'bg-amber-500'
+                                : 'bg-red-500'
+                            }`}
+                          />
+                          <span
+                            className={`font-medium ${
+                              srv.healthStatus === 'HEALTHY'
+                                ? 'text-emerald-700 dark:text-emerald-400'
+                                : srv.healthStatus === 'DEGRADED'
+                                ? 'text-amber-700 dark:text-amber-400'
+                                : 'text-red-700 dark:text-red-400'
+                            }`}
+                          >
+                            {srv.healthStatus}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.06] text-[11px] text-slate-400 dark:text-slate-500 flex items-center justify-between">
@@ -767,19 +774,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {paginatedIncidents.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400 dark:text-slate-500 font-mono">
-                    <AlertTriangle className="w-5 h-5 mx-auto mb-2 text-slate-400" />
-                    <div>No incidents found matching current search/filter criteria.</div>
-                    <button
-                      onClick={() => {
-                        setFilterSeverity('ALL');
-                        setFilterStatus('ALL');
-                        setSearchQuery('');
-                        setCurrentPage(1);
-                      }}
-                      className="mt-2 text-xs text-teal-600 dark:text-teal-400 hover:underline cursor-pointer font-medium"
-                    >
-                      Reset all filters
-                    </button>
+                    <CheckCircle2 className="w-6 h-6 mx-auto mb-2 text-emerald-500/80" />
+                    <div className="font-sans font-medium text-slate-700 dark:text-slate-300">
+                      {incidents.length === 0
+                        ? 'No incidents recorded yet. All systems operational.'
+                        : 'No incidents found matching current filter criteria.'}
+                    </div>
+                    {incidents.length === 0 ? (
+                      <button
+                        onClick={onOpenDeclareIncident}
+                        className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-teal-600 hover:bg-teal-500 text-white font-sans text-xs font-medium cursor-pointer transition-colors"
+                      >
+                        <span>Declare Incident</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setFilterSeverity('ALL');
+                          setFilterStatus('ALL');
+                          setSearchQuery('');
+                          setCurrentPage(1);
+                        }}
+                        className="mt-2 text-xs text-teal-600 dark:text-teal-400 hover:underline cursor-pointer font-medium"
+                      >
+                        Reset all filters
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (

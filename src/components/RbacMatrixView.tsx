@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Check, X as Cross, Shield, Key } from 'lucide-react';
+import { Users, Check, X as Cross, Shield, Key, Crown } from 'lucide-react';
 import { User, UserRole, ROLE_PERMISSIONS } from '../types';
 
 interface RbacMatrixViewProps {
@@ -14,7 +14,11 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
   onSwitchUser,
 }) => {
   const permissionsList = [
-    { key: 'canCreateIncident', label: 'Declare New Incident', desc: 'Ability to trigger incident creation in any service' },
+    { key: 'canManageProductAdmins', label: 'Assign Product Admins', desc: 'Platform Owner capability to assign global Product Admins' },
+    { key: 'canManageOrg', label: 'Organization Administration', desc: 'Manage enterprise org settings and audit controls' },
+    { key: 'canManageMembers', label: 'Manage Members & Roles', desc: 'Add new users to org and promote/demote member roles' },
+    { key: 'canManageTeams', label: 'Manage Operational Teams', desc: 'Create, update, and dissolve operational teams & team leads' },
+    { key: 'canCreateIncident', label: 'Declare New Incident', desc: 'Trigger incident creation for services across the catalog' },
     { key: 'canChangeStatus', label: 'Advance Incident Status', desc: 'Transition between INVESTIGATING, MITIGATING, RESOLVED, CLOSED' },
     { key: 'canChangeSeverity', label: 'Adjust Incident Severity', desc: 'Escalate or downgrade SEV-1 through SEV-4' },
     { key: 'canAssignEngineer', label: 'Assign Incident Roles', desc: 'Assign lead engineer and incident commander' },
@@ -23,7 +27,14 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
     { key: 'canDeleteIncident', label: 'Delete / Purge Incident', desc: 'Permanently remove incident records from data store' },
   ];
 
-  const roles: UserRole[] = ['ADMIN', 'INCIDENT_MANAGER', 'ENGINEER', 'VIEWER'];
+  const roles: UserRole[] = [
+    'PRODUCT_OWNER',
+    'PRODUCT_ADMIN',
+    'ORG_ADMIN',
+    'INCIDENT_MANAGER',
+    'ENGINEER',
+    'VIEWER',
+  ];
 
   return (
     <div className="space-y-6 pb-12">
@@ -31,17 +42,17 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
       <div className="pb-4 border-b border-slate-200 dark:border-white/[0.08]">
         <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <Shield className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-          <span>Access Control & Team Personas</span>
+          <span>Multi-Tiered RBAC & Governance Hierarchy</span>
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Role-based permissions governing incident triage, service administration, and evidence management.
+          Role-based permissions governing platform ownership, organization management, teams, incident triage, and evidence.
         </p>
       </div>
 
       {/* Active User Persona Cards */}
       <div>
         <div className="text-xs font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2.5">
-          Switch Active Persona
+          Active Accounts & Personas
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {allUsers.map((u) => {
@@ -59,7 +70,12 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
-                    <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">{u.name}</div>
+                    <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                      <span>{u.name}</span>
+                      {u.isProductOwner && (
+                        <Crown className="w-3 h-3 text-amber-500" />
+                      )}
+                    </div>
                     <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[150px]">{u.email}</div>
                   </div>
                   {isCurrent && (
@@ -71,7 +87,7 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
 
                 <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono">
                   <span className="text-slate-500">Role:</span>
-                  <span className="text-teal-700 dark:text-teal-300 font-semibold">{u.role}</span>
+                  <span className="text-teal-700 dark:text-teal-300 font-semibold">{u.role.replace('_', ' ')}</span>
                 </div>
               </div>
             );
@@ -89,7 +105,7 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
             </h2>
           </div>
           <span className="text-xs text-slate-500 font-mono">
-            Current: <span className="text-teal-600 dark:text-teal-400 font-bold">{currentUser.role}</span>
+            Current Persona: <span className="text-teal-600 dark:text-teal-400 font-bold">{currentUser.role.replace('_', ' ')}</span>
           </span>
         </div>
 
@@ -100,7 +116,7 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
                 <th className="py-3 px-4">Capability</th>
                 <th className="py-3 px-4">Description</th>
                 {roles.map((r) => (
-                  <th key={r} className="py-3 px-3 text-center">
+                  <th key={r} className="py-3 px-3 text-center whitespace-nowrap">
                     <span className={r === currentUser.role ? 'text-teal-600 dark:text-teal-400 font-bold' : ''}>
                       {r.replace('_', ' ')}
                     </span>
@@ -118,7 +134,7 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
                     {perm.desc}
                   </td>
                   {roles.map((r) => {
-                    const hasPerm = ROLE_PERMISSIONS[r][perm.key as keyof typeof ROLE_PERMISSIONS[UserRole]];
+                    const hasPerm = ROLE_PERMISSIONS[r]?.[perm.key as keyof typeof ROLE_PERMISSIONS[UserRole]];
                     const isUserRole = r === currentUser.role;
 
                     return (

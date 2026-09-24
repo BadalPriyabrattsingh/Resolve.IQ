@@ -125,8 +125,30 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
         </div>
       </div>
 
-      {/* Services Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Services Grid or Empty State */}
+      {filtered.length === 0 ? (
+        <div className="p-12 rounded-xl bg-white dark:bg-[#121820] border border-slate-200 dark:border-white/[0.08] text-center space-y-3 shadow-xs">
+          <Server className="w-10 h-10 mx-auto text-slate-400 dark:text-slate-600" />
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+            {searchTerm || tierFilter !== 'ALL' ? 'No matching services found' : 'No Services Registered Yet'}
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+            {searchTerm || tierFilter !== 'ALL'
+              ? 'Try adjusting your search query or tier filter.'
+              : 'Register your production services, APIs, and microservices to monitor health status, track dependencies, and attach incidents.'}
+          </p>
+          {permissions.canManageServices && !searchTerm && tierFilter === 'ALL' && (
+            <button
+              onClick={onOpenAddService}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-teal-600 hover:bg-teal-500 text-white text-xs font-medium shadow-xs transition-colors cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Register First Service</span>
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((srv) => {
           const activeIncidents = incidents.filter(
             (inc) => inc.serviceId === srv.id && !['RESOLVED', 'CLOSED'].includes(inc.status)
@@ -246,6 +268,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
           );
         })}
       </div>
+      )}
     </div>
   );
 };

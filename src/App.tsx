@@ -12,19 +12,24 @@ import { AddEvidenceModal } from './components/AddEvidenceModal';
 import { AddServiceModal } from './components/AddServiceModal';
 import { LoginGateway } from './components/LoginGateway';
 import { InteractiveTutorial } from './components/InteractiveTutorial';
+import { OrgManagementModal } from './components/OrgManagementModal';
+import { ProductAdminModal } from './components/ProductAdminModal';
 import { api, setCurrentUser } from './api';
-import { User, Incident, Service, DashboardStats } from './types';
+import { User, Incident, Service, DashboardStats, Organization, RolePermissions } from './types';
 
 export function App() {
   const [currentTab, setCurrentTab] = useState<NavigationTab>('dashboard');
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [incidentTab, setIncidentTab] = useState<'investigation' | 'actions' | 'timeline' | 'evidence'>('investigation');
-  const [showAuthGateway, setShowAuthGateway] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+
+  // Authentication & Organization State
+  const [currentUser, setCurrentUserState] = useState<User | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [permissions, setPermissions] = useState<RolePermissions | null>(null);
 
   // Core Data
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [currentUser, setCurrentUserState] = useState<User | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -37,26 +42,44 @@ export function App() {
   const [isDeclareOpen, setIsDeclareOpen] = useState(false);
   const [addEvidenceIncidentId, setAddEvidenceIncidentId] = useState<string | null>(null);
   const [isAddServiceOpen, setIsAddServiceOpen] = useState(false);
+  const [isOrgModalOpen, setIsOrgModalOpen] = useState(false);
+  const [isProductAdminModalOpen, setIsProductAdminModalOpen] = useState(false);
 
-  // Initial load
+  // Load user session & telemetry data
   const loadInitialData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [users, currentAuth, dashStats, incs, srvs] = await Promise.all([
-        api.getUsers(),
-        api.getCurrentUser(),
-        api.getDashboardStats(),
-        api.getIncidents(),
-        api.getServices(),
+      // First verify session
+      const me = await api.getMe();
+      if (!me || !me.user) {
+        setCurrentUserState(null);
+        setOrganization(null);
+        setPermissions(null);
+        setIsLoading(false);
+        return;
+      }
+
+      setCurrentUserState(me.user);
+      setOrganization(me.organization);
+      setPermissions(me.permissions);
+
+      // Next load core operational telemetry
+      const [users, dashStats, incs, srvs] = await Promise.all([
+        api.getUsers().catch(() => [me.user]),
+        api.getDashboardStats().catch(() => null),
+        api.getIncidents().catch(() => []),
+        api.getServices().catch(() => []),
       ]);
 
       setAllUsers(users);
-      setCurrentUserState(currentAuth.user);
       setStats(dashStats);
       setIncidents(incs);
       setServices(srvs);
-    } catch (err) {
-      console.error('Failed to load application data:', err);
+    } catch {
+      // User is not authenticated
+      setCurrentUserState(null);
+      setOrganization(null);
+      setPermissions(null);
     } finally {
       setIsLoading(false);
     }
@@ -66,8 +89,10 @@ export function App() {
     loadInitialData();
   }, [loadInitialData]);
 
-  // Periodic polling for stats & incidents (every 10s)
+  // Periodic polling for stats & incidents when logged in (every 10s)
   useEffect(() => {
+    if (!currentUser) return;
+
     const interval = setInterval(async () => {
       try {
         const [dashStats, incs, srvs] = await Promise.all([
@@ -78,20 +103,46 @@ export function App() {
         setStats(dashStats);
         setIncidents(incs);
         setServices(srvs);
-      } catch (err) {
+      } catch {
         // quiet background poll error handling
       }
     }, 10000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [currentUser]);
 
-  // Switch persona handler
+  // Handle successful login or registration from LoginGateway
+  const handleAuthSuccess = (data: {
+    token: string;
+    user: User;
+    organization: Organization;
+    permissions: RolePermissions;
+  }) => {
+    setCurrentUserState(data.user);
+    setOrganization(data.organization);
+    setPermissions(data.permissions);
+    loadInitialData();
+  };
+
+  // Sign out cleanly
+  const handleLogout = async () => {
+    await api.logout();
+    setCurrentUserState(null);
+    setOrganization(null);
+    setPermissions(null);
+    setIncidents([]);
+    setServices([]);
+    setStats(null);
+    setSelectedIncidentId(null);
+  };
+
+  // Switch persona handler for testing RBAC within registered users
   const handleSwitchUser = async (userId: string) => {
     setCurrentUser(userId);
     try {
       const auth = await api.getCurrentUser();
       setCurrentUserState(auth.user);
+      await loadInitialData();
     } catch (err) {
       console.error('Failed to switch user:', err);
     }
@@ -111,12 +162,12 @@ export function App() {
   };
 
   // Quick select service filter
-  const handleSelectService = (serviceId: string) => {
+  const handleSelectService = () => {
     setCurrentTab('services');
     setSelectedIncidentId(null);
   };
 
-  const handleSelectServiceIncidents = (serviceId: string) => {
+  const handleSelectServiceIncidents = () => {
     setCurrentTab('incidents');
     setSelectedIncidentId(null);
   };
@@ -128,7 +179,8 @@ export function App() {
     }
   };
 
-  if (isLoading || !currentUser) {
+  // Initial loading screen
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--bg-page)] flex flex-col items-center justify-center p-4 transition-colors">
         <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mb-3" />
@@ -137,24 +189,18 @@ export function App() {
           <span className="text-teal-600 dark:text-teal-400 ml-0.5 font-bold">IQ</span>
         </div>
         <div className="text-xs text-slate-400 dark:text-slate-500 mt-1 font-mono">
-          Connecting to telemetry feeds...
+          Authenticating telemetry environment...
         </div>
       </div>
     );
   }
 
-  // If user requests to view the Login / Auth Gateway from the screenshot
-  if (showAuthGateway) {
+  // If user is not logged in, show real Login & Registration Gateway
+  if (!currentUser) {
     return (
       <LoginGateway
-        allUsers={allUsers}
-        onLogin={(userId) => {
-          handleSwitchUser(userId);
-          setShowAuthGateway(false);
-        }}
-        onWakeServers={() => {
-          loadInitialData();
-        }}
+        onAuthSuccess={handleAuthSuccess}
+        onWakeServers={loadInitialData}
       />
     );
   }
@@ -164,15 +210,17 @@ export function App() {
       {/* Top Navigation */}
       <Navbar
         currentUser={currentUser}
+        organization={organization}
         allUsers={allUsers}
         onSwitchUser={handleSwitchUser}
         onOpenDeclareIncident={() => setIsDeclareOpen(true)}
-        onResetDemo={handleResetDemo}
         onSearchChange={handleSearchChange}
         searchQuery={searchQuery}
         onSelectIncidentById={(id) => setSelectedIncidentId(id)}
-        onOpenAuthGateway={() => setShowAuthGateway(true)}
         onOpenTutorial={() => setShowTutorial(true)}
+        onOpenOrgModal={() => setIsOrgModalOpen(true)}
+        onOpenProductAdminModal={() => setIsProductAdminModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* Main App Container with Sidebar */}
@@ -275,7 +323,23 @@ export function App() {
         onServiceCreated={loadInitialData}
       />
 
-      {/* 4. Interactive Guided Tour Modal */}
+      {/* 4. Organization & Team Management Modal */}
+      <OrgManagementModal
+        isOpen={isOrgModalOpen}
+        onClose={() => setIsOrgModalOpen(false)}
+        currentUser={currentUser}
+        onRefreshData={loadInitialData}
+      />
+
+      {/* 5. Product Admin Console Modal */}
+      <ProductAdminModal
+        isOpen={isProductAdminModalOpen}
+        onClose={() => setIsProductAdminModalOpen(false)}
+        currentUser={currentUser}
+        onRefreshData={loadInitialData}
+      />
+
+      {/* 6. Interactive Guided Tour Modal */}
       <InteractiveTutorial
         isOpen={showTutorial}
         onClose={() => setShowTutorial(false)}
@@ -288,10 +352,12 @@ export function App() {
           setIsDeclareOpen(true);
         }}
         onOpenDemoIncident={(tab = 'investigation') => {
-          const primaryInc = incidents.find((i) => i.incidentNumber === 'INC-2026-0842') || incidents[0];
+          const primaryInc = incidents[0];
           if (primaryInc) {
             setIncidentTab(tab);
             setSelectedIncidentId(primaryInc.id);
+          } else {
+            setCurrentTab('incidents');
           }
         }}
         onSwitchUser={handleSwitchUser}

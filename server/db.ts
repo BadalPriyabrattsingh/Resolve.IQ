@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import {
   Incident,
   Service,
@@ -13,56 +14,83 @@ import {
   Investigation,
   Hypothesis,
   HypothesisStatus,
+  ContractorMapping,
 } from '../src/types';
 import { synthesizeDeterministicInvestigation } from './aiInvestigation';
 
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  ticketPrefix?: string;
+  ownerUserId: string;
+  createdAt: string;
+  isContractorOrg?: boolean;
+}
+
+export function generateTicketPrefix(orgName: string): string {
+  const clean = orgName.trim().toUpperCase().replace(/[^A-Z0-9\s]/g, '');
+  const words = clean.split(/\s+/).filter(Boolean);
+  if (words.length === 1) {
+    return words[0].slice(0, 5) || 'INC';
+  }
+  let candidate = words.map((w) => w[0]).join('');
+  if (candidate.length < 3 && words[0].length >= 3) {
+    candidate = words[0].slice(0, 3) + (words[1] ? words[1][0] : '');
+  }
+  return candidate.slice(0, 5) || 'INC';
+}
+
+export interface Team {
+  id: string;
+  orgId: string;
+  name: string;
+  description: string;
+  leadUserId?: string;
+  memberUserIds: string[];
+  createdAt: string;
+}
+
+export interface UserRecord extends User {
+  passwordHash?: string;
+}
+
+export interface Session {
+  token: string;
+  userId: string;
+  activeOrgId?: string; // Currently selected tenant context
+  createdAt: string;
+  expiresAt: string;
+}
+
 interface DatabaseSchema {
-  users: User[];
+  organizations: Organization[];
+  teams: Team[];
+  users: UserRecord[];
+  sessions: Session[];
   services: Service[];
   incidents: Incident[];
   evidence: Evidence[];
   timelineEvents: TimelineEvent[];
   investigations: Investigation[];
+  contractorMappings: ContractorMapping[];
 }
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'resolveiq_db.json');
 
-// Initial seed data
-const SEED_USERS: User[] = [
-  {
-    id: 'usr-admin-1',
-    name: 'Alex Turner',
-    email: 'alex.turner@resolveiq.internal',
-    role: 'ADMIN',
-    title: 'Lead Platform Architect',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'usr-ic-1',
-    name: 'Sarah Chen',
-    email: 'sarah.chen@resolveiq.internal',
-    role: 'INCIDENT_MANAGER',
-    title: 'Principal Incident Commander',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'usr-eng-1',
-    name: 'Marcus Vance',
-    email: 'marcus.vance@resolveiq.internal',
-    role: 'ENGINEER',
-    title: 'Senior SRE / Distributed Systems',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'usr-view-1',
-    name: 'Elena Rostova',
-    email: 'elena.rostova@resolveiq.internal',
-    role: 'VIEWER',
-    title: 'Operations Analyst / Stakeholder',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-  },
-];
+export function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password + '_resolveiq_salt_2026').digest('hex');
+}
+
+export function verifyPassword(password: string, hash: string): boolean {
+  return hashPassword(password) === hash;
+}
+
+export function sanitizeUser(u: UserRecord): User {
+  const { passwordHash, ...rest } = u;
+  return rest as User;
+}
 
 const SEED_SERVICES: Service[] = [
   {
@@ -571,16 +599,19 @@ function ensureDataDir() {
 
 function loadDatabase(): DatabaseSchema {
   ensureDataDir();
-  const initialInvestigations = getInitialSeedInvestigations();
 
   if (!fs.existsSync(DB_FILE)) {
     const initialDb: DatabaseSchema = {
-      users: SEED_USERS,
-      services: SEED_SERVICES,
-      incidents: SEED_INCIDENTS,
-      evidence: SEED_EVIDENCE,
-      timelineEvents: SEED_TIMELINE_EVENTS,
-      investigations: initialInvestigations,
+      organizations: [],
+      teams: [],
+      users: [],
+      sessions: [],
+      services: [],
+      incidents: [],
+      evidence: [],
+      timelineEvents: [],
+      investigations: [],
+      contractorMappings: [],
     };
     saveDatabase(initialDb);
     return initialDb;
@@ -588,28 +619,42 @@ function loadDatabase(): DatabaseSchema {
 
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    const parsed = JSON.parse(raw) as DatabaseSchema;
-    // ensure all arrays exist
-    return {
-      users: parsed.users || SEED_USERS,
-      services: parsed.services || SEED_SERVICES,
-      incidents: parsed.incidents || SEED_INCIDENTS,
-      evidence: parsed.evidence || SEED_EVIDENCE,
-      timelineEvents: parsed.timelineEvents || SEED_TIMELINE_EVENTS,
-      investigations:
-        parsed.investigations && parsed.investigations.length > 0
-          ? parsed.investigations
-          : initialInvestigations,
+    const parsed = JSON.parse(raw) as Partial<DatabaseSchema>;
+    // Filter out any legacy dummy users that don't have passwordHash and orgId
+    const validUsers = (parsed.users || []).filter(
+      (u) => !!u.passwordHash && !!u.orgId
+    );
+    const validOrgs = parsed.organizations || [];
+    const validTeams = parsed.teams || [];
+    const validSessions = parsed.sessions || [];
+
+    const dbData: DatabaseSchema = {
+      organizations: validOrgs,
+      teams: validTeams,
+      users: validUsers,
+      sessions: validSessions,
+      services: Array.isArray(parsed.services) ? parsed.services : [],
+      incidents: Array.isArray(parsed.incidents) ? parsed.incidents : [],
+      evidence: Array.isArray(parsed.evidence) ? parsed.evidence : [],
+      timelineEvents: Array.isArray(parsed.timelineEvents) ? parsed.timelineEvents : [],
+      investigations: Array.isArray(parsed.investigations) ? parsed.investigations : [],
+      contractorMappings: Array.isArray(parsed.contractorMappings) ? parsed.contractorMappings : [],
     };
+    saveDatabase(dbData);
+    return dbData;
   } catch (err) {
-    console.error('Failed to read database file, re-initializing with seed data:', err);
+    console.error('Failed to read database file, initializing clean database:', err);
     const fallbackDb: DatabaseSchema = {
-      users: SEED_USERS,
-      services: SEED_SERVICES,
-      incidents: SEED_INCIDENTS,
-      evidence: SEED_EVIDENCE,
-      timelineEvents: SEED_TIMELINE_EVENTS,
-      investigations: initialInvestigations,
+      organizations: [],
+      teams: [],
+      users: [],
+      sessions: [],
+      services: [],
+      incidents: [],
+      evidence: [],
+      timelineEvents: [],
+      investigations: [],
+      contractorMappings: [],
     };
     saveDatabase(fallbackDb);
     return fallbackDb;
@@ -627,27 +672,939 @@ function saveDatabase(data: DatabaseSchema): void {
 let dbCache: DatabaseSchema = loadDatabase();
 
 export const db = {
-  // USER OPERATIONS
+  // USER & AUTH OPERATIONS
+  hasUsers(): boolean {
+    return dbCache.users.length > 0;
+  },
+
   getUsers(): User[] {
-    return dbCache.users;
+    return dbCache.users.map(sanitizeUser);
   },
 
   getUserById(id: string): User | undefined {
+    const u = dbCache.users.find((u) => u.id === id);
+    return u ? sanitizeUser(u) : undefined;
+  },
+
+  getUserRecordById(id: string): UserRecord | undefined {
     return dbCache.users.find((u) => u.id === id);
   },
 
+  getUserByEmail(email: string): UserRecord | undefined {
+    const clean = email.trim().toLowerCase();
+    return dbCache.users.find(
+      (u) =>
+        u.email.toLowerCase() === clean ||
+        (u.contractorEmail && u.contractorEmail.toLowerCase() === clean) ||
+        (u.contractorId && u.contractorId.toLowerCase() === clean)
+    );
+  },
+
+  getUserBySession(token: string): {
+    user: User;
+    organization: Organization;
+    availableOrganizations: Organization[];
+  } | null {
+    if (!token) return null;
+    const session = dbCache.sessions.find((s) => s.token === token);
+    if (!session) return null;
+    if (new Date(session.expiresAt).getTime() < Date.now()) {
+      dbCache.sessions = dbCache.sessions.filter((s) => s.token !== token);
+      saveDatabase(dbCache);
+      return null;
+    }
+    const userRecord = dbCache.users.find((u) => u.id === session.userId);
+    if (!userRecord) return null;
+
+    // Home organization
+    let homeOrg = dbCache.organizations.find((o) => o.id === userRecord.orgId);
+    if (!homeOrg) {
+      const ticketPrefix = generateTicketPrefix(userRecord.orgName || 'Primary');
+      homeOrg = {
+        id: userRecord.orgId || 'org-default',
+        name: userRecord.orgName || 'Primary Organization',
+        slug: (userRecord.orgName || 'primary').toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        ticketPrefix,
+        ownerUserId: userRecord.id,
+        createdAt: userRecord.createdAt || new Date().toISOString(),
+      };
+    }
+
+    // Determine all accessible organizations (Home org + Client orgs where mapped as contractor)
+    const availableOrgsMap = new Map<string, Organization>();
+    availableOrgsMap.set(homeOrg.id, homeOrg);
+
+    // If user is PRODUCT_OWNER, can access all organizations
+    if (userRecord.isProductOwner || userRecord.role === 'PRODUCT_OWNER') {
+      dbCache.organizations.forEach((o) => availableOrgsMap.set(o.id, o));
+    } else {
+      // Find contractor mappings for this user
+      (dbCache.contractorMappings || []).forEach((cm) => {
+        if (
+          cm.userId === userRecord.id ||
+          cm.actualEmail.toLowerCase() === userRecord.email.toLowerCase() ||
+          (userRecord.contractorEmail &&
+            cm.contractorEmail.toLowerCase() === userRecord.contractorEmail.toLowerCase())
+        ) {
+          const clientOrg = dbCache.organizations.find((o) => o.id === cm.orgId);
+          if (clientOrg) {
+            availableOrgsMap.set(clientOrg.id, {
+              ...clientOrg,
+              isContractorOrg: true,
+            });
+          }
+        }
+      });
+    }
+
+    const availableOrganizations = Array.from(availableOrgsMap.values());
+
+    // Check if session has a specific activeOrgId selected
+    let activeOrg = homeOrg;
+    let effectiveUser: UserRecord = { ...userRecord };
+
+    if (session.activeOrgId && session.activeOrgId !== homeOrg.id) {
+      const targetOrg = availableOrgsMap.get(session.activeOrgId);
+      if (targetOrg) {
+        activeOrg = targetOrg;
+        // Check if there is a contractor mapping for this org
+        const cm = (dbCache.contractorMappings || []).find(
+          (m) =>
+            m.orgId === targetOrg.id &&
+            (m.userId === userRecord.id ||
+              m.actualEmail.toLowerCase() === userRecord.email.toLowerCase())
+        );
+        if (cm) {
+          effectiveUser.orgId = targetOrg.id;
+          effectiveUser.orgName = targetOrg.name;
+          effectiveUser.contractorEmail = cm.contractorEmail;
+          effectiveUser.contractorId = cm.contractorId;
+          effectiveUser.isContractor = true;
+          effectiveUser.vendorCompany = cm.vendorCompany;
+          effectiveUser.contractorSyncStatus = cm.syncStatus;
+          effectiveUser.lastSyncedAt = cm.lastSyncedAt;
+          effectiveUser.role = cm.role || 'ENGINEER';
+          effectiveUser.title = cm.title || `Outsourced Contractor (${cm.vendorCompany})`;
+          effectiveUser.teams = cm.teams || [];
+        } else if (userRecord.isProductOwner) {
+          effectiveUser.orgId = targetOrg.id;
+          effectiveUser.orgName = targetOrg.name;
+        }
+      }
+    }
+
+    return {
+      user: sanitizeUser(effectiveUser),
+      organization: activeOrg,
+      availableOrganizations,
+    };
+  },
+
+  switchUserOrganization(
+    token: string,
+    targetOrgId: string
+  ): {
+    user: User;
+    organization: Organization;
+    availableOrganizations: Organization[];
+  } {
+    const session = dbCache.sessions.find((s) => s.token === token);
+    if (!session) throw new Error('Invalid or expired session');
+    const userRecord = dbCache.users.find((u) => u.id === session.userId);
+    if (!userRecord) throw new Error('User not found');
+
+    const targetOrg = dbCache.organizations.find((o) => o.id === targetOrgId);
+    if (!targetOrg) throw new Error('Target organization not found');
+
+    const isHomeOrg = userRecord.orgId === targetOrgId;
+    const isOwner = userRecord.isProductOwner || userRecord.role === 'PRODUCT_OWNER';
+    const isMappedContractor = (dbCache.contractorMappings || []).some(
+      (cm) =>
+        cm.orgId === targetOrgId &&
+        (cm.userId === userRecord.id ||
+          cm.actualEmail.toLowerCase() === userRecord.email.toLowerCase())
+    );
+
+    if (!isHomeOrg && !isOwner && !isMappedContractor) {
+      throw new Error(
+        'Access denied: You do not have an active membership or contractor sync in this organization.'
+      );
+    }
+
+    session.activeOrgId = targetOrgId;
+    saveDatabase(dbCache);
+
+    const result = this.getUserBySession(token);
+    if (!result) throw new Error('Failed to update active tenant context');
+    return result;
+  },
+
+  registerUser(payload: {
+    name: string;
+    email: string;
+    password: string;
+    organizationName: string;
+    title?: string;
+  }): { token: string; user: User; organization: Organization } {
+    const cleanEmail = payload.email.trim().toLowerCase();
+    if (dbCache.users.some((u) => u.email.toLowerCase() === cleanEmail)) {
+      throw new Error('An account with this email address already exists. Please sign in.');
+    }
+
+    const isFirstUserEver = dbCache.users.length === 0;
+    const cleanOrgName = payload.organizationName.trim();
+    let org = dbCache.organizations.find(
+      (o) => o.name.toLowerCase() === cleanOrgName.toLowerCase()
+    );
+    let isFirstInOrg = false;
+    const userId = `usr-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+    const ticketPrefix = generateTicketPrefix(cleanOrgName);
+
+    if (isFirstUserEver) {
+      const orgId = `org-${Date.now().toString(36)}`;
+      org = {
+        id: orgId,
+        name: cleanOrgName,
+        slug: cleanOrgName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        ticketPrefix,
+        ownerUserId: userId,
+        createdAt: new Date().toISOString(),
+      };
+      dbCache.organizations.push(org);
+      isFirstInOrg = true;
+    } else if (!org) {
+      const orgId = `org-${Date.now().toString(36)}`;
+      org = {
+        id: orgId,
+        name: cleanOrgName,
+        slug: cleanOrgName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        ticketPrefix,
+        ownerUserId: userId,
+        createdAt: new Date().toISOString(),
+      };
+      dbCache.organizations.push(org);
+      isFirstInOrg = true;
+    } else {
+      const existingMembers = dbCache.users.filter((u) => u.orgId === org!.id);
+      if (existingMembers.length === 0) {
+        isFirstInOrg = true;
+        org.ownerUserId = userId;
+      }
+    }
+
+    let role: UserRole = 'ENGINEER';
+    let isProductOwner = false;
+    let isProductAdmin = false;
+
+    if (isFirstUserEver) {
+      role = 'PRODUCT_OWNER';
+      isProductOwner = true;
+      isProductAdmin = true;
+    } else if (isFirstInOrg) {
+      role = 'ORG_ADMIN';
+    }
+
+    const newUser: UserRecord = {
+      id: userId,
+      name: payload.name.trim(),
+      email: cleanEmail,
+      passwordHash: hashPassword(payload.password),
+      role,
+      orgId: org.id,
+      orgName: org.name,
+      title:
+        payload.title?.trim() ||
+        (isProductOwner
+          ? 'Platform Owner / Lead Architect'
+          : isFirstInOrg
+          ? 'Organization Administrator'
+          : 'Software Engineer'),
+      avatarUrl: `https://images.unsplash.com/photo-${
+        isProductOwner
+          ? '1534528741775-53994a69daeb'
+          : isFirstInOrg
+          ? '1580489944761-15a19d654956'
+          : '1507003211169-0a1dd7228f2d'
+      }?w=150&auto=format&fit=crop&q=80`,
+      teams: ['Core Reliability'],
+      isProductOwner,
+      isProductAdmin,
+      createdAt: new Date().toISOString(),
+    };
+
+    dbCache.users.push(newUser);
+
+    if (isFirstInOrg) {
+      const defaultTeam: Team = {
+        id: `team-${Date.now().toString(36)}`,
+        orgId: org.id,
+        name: 'Core Reliability',
+        description: 'Primary incident response and site reliability team',
+        leadUserId: userId,
+        memberUserIds: [userId],
+        createdAt: new Date().toISOString(),
+      };
+      dbCache.teams.push(defaultTeam);
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const session: Session = {
+      token,
+      userId: newUser.id,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    dbCache.sessions.push(session);
+
+    saveDatabase(dbCache);
+
+    return {
+      token,
+      user: sanitizeUser(newUser),
+      organization: org,
+    };
+  },
+
+  loginUser(payload: {
+    email: string;
+    password: string;
+  }): {
+    token: string;
+    user: User;
+    organization: Organization;
+    availableOrganizations: Organization[];
+  } {
+    const cleanIdentifier = payload.email.trim().toLowerCase();
+
+    // 1. Direct match on users (actual email, contractor email, contractor ID)
+    let user = dbCache.users.find(
+      (u) =>
+        u.email.toLowerCase() === cleanIdentifier ||
+        (u.contractorEmail && u.contractorEmail.toLowerCase() === cleanIdentifier) ||
+        (u.contractorId && u.contractorId.toLowerCase() === cleanIdentifier)
+    );
+
+    let matchingMapping: ContractorMapping | undefined;
+
+    // 2. Cross-org contractor mapping match
+    if (!user) {
+      matchingMapping = (dbCache.contractorMappings || []).find(
+        (cm) =>
+          cm.contractorEmail.toLowerCase() === cleanIdentifier ||
+          cm.contractorId.toLowerCase() === cleanIdentifier ||
+          cm.actualEmail.toLowerCase() === cleanIdentifier
+      );
+
+      if (matchingMapping) {
+        if (matchingMapping.userId) {
+          user = dbCache.users.find((u) => u.id === matchingMapping!.userId);
+        }
+        if (!user) {
+          user = dbCache.users.find(
+            (u) => u.email.toLowerCase() === matchingMapping!.actualEmail.toLowerCase()
+          );
+        }
+      }
+    }
+
+    if (!user || !user.passwordHash || !verifyPassword(payload.password, user.passwordHash)) {
+      throw new Error('Invalid email or password.');
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const session: Session = {
+      token,
+      userId: user.id,
+      // If user logged in specifically via client contractor email or badge, enter that client org!
+      activeOrgId: matchingMapping ? matchingMapping.orgId : user.orgId,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    dbCache.sessions.push(session);
+    saveDatabase(dbCache);
+
+    const sessionData = this.getUserBySession(token);
+    if (!sessionData) {
+      throw new Error('Failed to initialize session');
+    }
+
+    return {
+      token,
+      user: sessionData.user,
+      organization: sessionData.organization,
+      availableOrganizations: sessionData.availableOrganizations,
+    };
+  },
+
+  logoutUser(token: string): boolean {
+    dbCache.sessions = dbCache.sessions.filter((s) => s.token !== token);
+    saveDatabase(dbCache);
+    return true;
+  },
+
+  // ORGANIZATION & TEAM OPERATIONS
+  getOrganizationById(id: string): Organization | undefined {
+    return dbCache.organizations.find((o) => o.id === id);
+  },
+
+  getAllOrganizations(): (Organization & { memberCount: number; teamCount: number })[] {
+    return dbCache.organizations.map((o) => ({
+      ...o,
+      memberCount: dbCache.users.filter((u) => u.orgId === o.id).length,
+      teamCount: dbCache.teams.filter((t) => t.orgId === o.id).length,
+    }));
+  },
+
+  getOrganizationMembers(orgId: string): User[] {
+    const orgUsers = dbCache.users.filter((u) => u.orgId === orgId).map(sanitizeUser);
+
+    // Merge in synced contractors for this client organization
+    const contractors: User[] = (dbCache.contractorMappings || [])
+      .filter((cm) => cm.orgId === orgId && cm.syncStatus === 'SYNCED')
+      .map((cm) => {
+        const actualUser = cm.userId
+          ? dbCache.users.find((u) => u.id === cm.userId)
+          : dbCache.users.find(
+              (u) => u.email.toLowerCase() === cm.actualEmail.toLowerCase()
+            );
+
+        return {
+          id: actualUser?.id || `ctr-${cm.id}`,
+          name: cm.contractorName || actualUser?.name || cm.actualEmail.split('@')[0],
+          email: cm.actualEmail,
+          contractorEmail: cm.contractorEmail,
+          contractorId: cm.contractorId,
+          isContractor: true,
+          vendorCompany: cm.vendorCompany,
+          contractorSyncStatus: cm.syncStatus,
+          lastSyncedAt: cm.lastSyncedAt,
+          role: cm.role || 'ENGINEER',
+          orgId: orgId,
+          orgName: cm.orgName,
+          title: cm.title || `Outsourced Contractor (${cm.vendorCompany})`,
+          teams: cm.teams || [],
+          avatarUrl:
+            actualUser?.avatarUrl ||
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          createdAt: cm.createdAt,
+        };
+      });
+
+    const result = [...orgUsers];
+    contractors.forEach((ctr) => {
+      const exists = result.some(
+        (u) =>
+          u.id === ctr.id ||
+          u.email.toLowerCase() === ctr.email.toLowerCase() ||
+          (u.contractorEmail &&
+            ctr.contractorEmail &&
+            u.contractorEmail.toLowerCase() === ctr.contractorEmail.toLowerCase())
+      );
+      if (!exists) {
+        result.push(ctr);
+      }
+    });
+
+    return result;
+  },
+
+  // CONTRACTOR IDENTITY MAPPING OPERATIONS
+  getContractorMappings(orgId: string): ContractorMapping[] {
+    return (dbCache.contractorMappings || []).filter((cm) => cm.orgId === orgId);
+  },
+
+  lookupContractorByActualEmail(actualEmail: string): {
+    found: boolean;
+    user?: { id: string; name: string; email: string; orgName: string; title: string };
+  } {
+    const clean = actualEmail.trim().toLowerCase();
+    const existing = dbCache.users.find((u) => u.email.toLowerCase() === clean);
+    if (existing) {
+      return {
+        found: true,
+        user: {
+          id: existing.id,
+          name: existing.name,
+          email: existing.email,
+          orgName: existing.orgName,
+          title: existing.title,
+        },
+      };
+    }
+    return { found: false };
+  },
+
+  syncContractorMapping(
+    orgId: string,
+    payload: {
+      actualEmail: string;
+      contractorEmail: string;
+      contractorId: string;
+      vendorCompany: string;
+      contractorName?: string;
+      role?: UserRole;
+      title?: string;
+      teams?: string[];
+      temporaryPassword?: string;
+    }
+  ): ContractorMapping {
+    const clientOrg = dbCache.organizations.find((o) => o.id === orgId);
+    if (!clientOrg) throw new Error('Client organization not found');
+
+    const cleanActualEmail = payload.actualEmail.trim().toLowerCase();
+    const cleanContractorEmail = payload.contractorEmail.trim().toLowerCase();
+    const cleanContractorId = payload.contractorId.trim();
+    const cleanVendorCompany = payload.vendorCompany.trim();
+
+    if (!cleanActualEmail || !cleanContractorEmail || !cleanContractorId || !cleanVendorCompany) {
+      throw new Error(
+        'Missing required fields: Actual Mail ID, Contractor Client Mail, Contractor ID, and Vendor Company'
+      );
+    }
+
+    if (!dbCache.contractorMappings) {
+      dbCache.contractorMappings = [];
+    }
+
+    // Check if contractor is already mapped in this org
+    let existingMapping = dbCache.contractorMappings.find(
+      (cm) =>
+        cm.orgId === orgId &&
+        (cm.actualEmail.toLowerCase() === cleanActualEmail ||
+          cm.contractorEmail.toLowerCase() === cleanContractorEmail ||
+          cm.contractorId.toLowerCase() === cleanContractorId.toLowerCase())
+    );
+
+    // Look up primary user record
+    let linkedUser = dbCache.users.find((u) => u.email.toLowerCase() === cleanActualEmail);
+
+    // If primary user does not exist yet in system, create user record so they can sign in with password
+    if (!linkedUser) {
+      const defaultPassword = payload.temporaryPassword || 'password123';
+      const newUserId = `usr-ctr-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+      const vendorOrgName = cleanVendorCompany || 'Vendor Firm';
+
+      let vendorOrg = dbCache.organizations.find(
+        (o) => o.name.toLowerCase() === vendorOrgName.toLowerCase()
+      );
+      if (!vendorOrg) {
+        vendorOrg = {
+          id: `org-vendor-${Date.now().toString(36)}`,
+          name: vendorOrgName,
+          slug: vendorOrgName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+          ticketPrefix: generateTicketPrefix(vendorOrgName),
+          ownerUserId: newUserId,
+          createdAt: new Date().toISOString(),
+        };
+        dbCache.organizations.push(vendorOrg);
+      }
+
+      linkedUser = {
+        id: newUserId,
+        name: payload.contractorName?.trim() || cleanActualEmail.split('@')[0],
+        email: cleanActualEmail,
+        contractorEmail: cleanContractorEmail,
+        contractorId: cleanContractorId,
+        isContractor: true,
+        vendorCompany: cleanVendorCompany,
+        passwordHash: hashPassword(defaultPassword),
+        role: payload.role || 'ENGINEER',
+        orgId: vendorOrg.id,
+        orgName: vendorOrg.name,
+        title: payload.title?.trim() || `Outsourced SRE (${cleanVendorCompany})`,
+        avatarUrl:
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        teams: payload.teams || [],
+        createdAt: new Date().toISOString(),
+      };
+      dbCache.users.push(linkedUser);
+    } else {
+      // User exists! Link them
+      linkedUser.contractorEmail = cleanContractorEmail;
+      linkedUser.contractorId = cleanContractorId;
+      linkedUser.vendorCompany = cleanVendorCompany;
+      linkedUser.isContractor = true;
+      linkedUser.contractorSyncStatus = 'SYNCED';
+      linkedUser.lastSyncedAt = new Date().toISOString();
+    }
+
+    const mappingId =
+      existingMapping?.id ||
+      `cm-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+    const now = new Date().toISOString();
+
+    const mapping: ContractorMapping = {
+      id: mappingId,
+      orgId: clientOrg.id,
+      orgName: clientOrg.name,
+      userId: linkedUser.id,
+      actualEmail: cleanActualEmail,
+      contractorEmail: cleanContractorEmail,
+      contractorId: cleanContractorId,
+      vendorCompany: cleanVendorCompany,
+      contractorName: payload.contractorName?.trim() || linkedUser.name,
+      role: payload.role || 'ENGINEER',
+      title: payload.title?.trim() || `Outsourced SRE (${cleanVendorCompany})`,
+      teams: payload.teams || [],
+      syncStatus: 'SYNCED',
+      lastSyncedAt: now,
+      createdAt: existingMapping?.createdAt || now,
+    };
+
+    if (existingMapping) {
+      const idx = dbCache.contractorMappings.indexOf(existingMapping);
+      dbCache.contractorMappings[idx] = mapping;
+    } else {
+      dbCache.contractorMappings.push(mapping);
+    }
+
+    // Also sync teams in clientOrg
+    if (payload.teams && payload.teams.length > 0) {
+      dbCache.teams.forEach((t) => {
+        if (
+          t.orgId === orgId &&
+          payload.teams!.includes(t.name) &&
+          !t.memberUserIds.includes(linkedUser!.id)
+        ) {
+          t.memberUserIds.push(linkedUser!.id);
+        }
+      });
+    }
+
+    saveDatabase(dbCache);
+    return mapping;
+  },
+
+  resyncContractor(orgId: string, mappingId: string): ContractorMapping {
+    const mapping = (dbCache.contractorMappings || []).find(
+      (m) => m.id === mappingId && m.orgId === orgId
+    );
+    if (!mapping) throw new Error('Contractor mapping not found');
+
+    mapping.syncStatus = 'SYNCED';
+    mapping.lastSyncedAt = new Date().toISOString();
+
+    if (mapping.userId) {
+      const u = dbCache.users.find((usr) => usr.id === mapping.userId);
+      if (u) {
+        mapping.contractorName = u.name;
+        u.contractorSyncStatus = 'SYNCED';
+        u.lastSyncedAt = mapping.lastSyncedAt;
+      }
+    }
+
+    saveDatabase(dbCache);
+    return mapping;
+  },
+
+  deleteContractorMapping(orgId: string, mappingId: string): boolean {
+    const beforeCount = (dbCache.contractorMappings || []).length;
+    dbCache.contractorMappings = (dbCache.contractorMappings || []).filter(
+      (m) => !(m.id === mappingId && m.orgId === orgId)
+    );
+    if (dbCache.contractorMappings.length !== beforeCount) {
+      saveDatabase(dbCache);
+      return true;
+    }
+    return false;
+  },
+
+  addOrganizationMember(
+    orgId: string,
+    payload: {
+      name: string;
+      email: string;
+      contractorEmail?: string;
+      contractorId?: string;
+      isContractor?: boolean;
+      vendorCompany?: string;
+      password: string;
+      role: UserRole;
+      title?: string;
+      teams?: string[];
+    }
+  ): User {
+    const cleanEmail = payload.email.trim().toLowerCase();
+    const cleanContractorEmail = payload.contractorEmail?.trim().toLowerCase();
+
+    // Check duplicate email across actual and contractor email fields
+    const duplicate = dbCache.users.find(
+      (u) =>
+        u.email.toLowerCase() === cleanEmail ||
+        (cleanContractorEmail && u.email.toLowerCase() === cleanContractorEmail) ||
+        (cleanContractorEmail && u.contractorEmail?.toLowerCase() === cleanContractorEmail) ||
+        (u.contractorEmail && u.contractorEmail.toLowerCase() === cleanEmail)
+    );
+    if (duplicate) {
+      throw new Error('A user with this email or contractor email address already exists');
+    }
+
+    const org = dbCache.organizations.find((o) => o.id === orgId);
+    if (!org) throw new Error('Organization not found');
+
+    const allowedRoles: UserRole[] = ['ORG_ADMIN', 'INCIDENT_MANAGER', 'ENGINEER', 'VIEWER'];
+    if (!allowedRoles.includes(payload.role)) {
+      throw new Error(`Invalid role for organization member: ${payload.role}`);
+    }
+
+    const userId = `usr-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+    const isContractor = payload.isContractor ?? !!(payload.contractorEmail || payload.contractorId || payload.vendorCompany);
+
+    const newUser: UserRecord = {
+      id: userId,
+      name: payload.name.trim(),
+      email: cleanEmail,
+      contractorEmail: payload.contractorEmail?.trim() || undefined,
+      contractorId: payload.contractorId?.trim() || undefined,
+      isContractor,
+      vendorCompany: payload.vendorCompany?.trim() || undefined,
+      passwordHash: hashPassword(payload.password),
+      role: payload.role,
+      orgId: org.id,
+      orgName: org.name,
+      title:
+        payload.title?.trim() ||
+        (isContractor
+          ? `Outsourced Contractor ${payload.vendorCompany ? `(${payload.vendorCompany})` : ''}`
+          : 'Team Member'),
+      avatarUrl: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80`,
+      teams: payload.teams || [],
+      isProductOwner: false,
+      isProductAdmin: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    dbCache.users.push(newUser);
+
+    if (payload.teams && payload.teams.length > 0) {
+      dbCache.teams.forEach((t) => {
+        if (t.orgId === orgId && payload.teams!.includes(t.name) && !t.memberUserIds.includes(userId)) {
+          t.memberUserIds.push(userId);
+        }
+      });
+    }
+
+    saveDatabase(dbCache);
+    return sanitizeUser(newUser);
+  },
+
+  updateMember(
+    orgId: string,
+    userId: string,
+    updates: {
+      role?: UserRole;
+      contractorEmail?: string;
+      contractorId?: string;
+      isContractor?: boolean;
+      vendorCompany?: string;
+      title?: string;
+      teams?: string[];
+      name?: string;
+    }
+  ): User {
+    const user = dbCache.users.find((u) => u.id === userId && u.orgId === orgId);
+    if (!user) throw new Error('User not found in organization');
+
+    if (updates.role) {
+      if (user.isProductOwner && updates.role !== 'PRODUCT_OWNER') {
+        throw new Error('Cannot change the role of the Product Owner');
+      }
+      const allowedRoles: UserRole[] = ['ORG_ADMIN', 'INCIDENT_MANAGER', 'ENGINEER', 'VIEWER'];
+      if (!allowedRoles.includes(updates.role)) {
+        throw new Error(`Invalid role: ${updates.role}`);
+      }
+      user.role = updates.role;
+    }
+
+    if (updates.contractorEmail !== undefined) {
+      const cleanContractorEmail = updates.contractorEmail.trim().toLowerCase();
+      if (cleanContractorEmail) {
+        const conflict = dbCache.users.find(
+          (u) =>
+            u.id !== userId &&
+            (u.email.toLowerCase() === cleanContractorEmail ||
+              u.contractorEmail?.toLowerCase() === cleanContractorEmail)
+        );
+        if (conflict) {
+          throw new Error('Contractor email is already in use by another user');
+        }
+        user.contractorEmail = cleanContractorEmail;
+      } else {
+        user.contractorEmail = undefined;
+      }
+    }
+
+    if (updates.contractorId !== undefined) {
+      user.contractorId = updates.contractorId.trim() || undefined;
+    }
+
+    if (updates.isContractor !== undefined) {
+      user.isContractor = updates.isContractor;
+    }
+
+    if (updates.vendorCompany !== undefined) {
+      user.vendorCompany = updates.vendorCompany.trim() || undefined;
+    }
+
+    if (updates.title !== undefined) {
+      user.title = updates.title.trim();
+    }
+
+    if (updates.name !== undefined) {
+      user.name = updates.name.trim();
+    }
+
+    if (updates.teams) {
+      user.teams = updates.teams;
+      dbCache.teams.forEach((t) => {
+        if (t.orgId === orgId) {
+          if (updates.teams!.includes(t.name)) {
+            if (!t.memberUserIds.includes(userId)) t.memberUserIds.push(userId);
+          } else {
+            t.memberUserIds = t.memberUserIds.filter((id) => id !== userId);
+          }
+        }
+      });
+    }
+
+    saveDatabase(dbCache);
+    return sanitizeUser(user);
+  },
+
+  updateMemberRole(orgId: string, userId: string, newRole: UserRole): User {
+    return this.updateMember(orgId, userId, { role: newRole });
+  },
+
+  removeMember(orgId: string, userId: string, callerId: string): boolean {
+    const user = dbCache.users.find((u) => u.id === userId && u.orgId === orgId);
+    if (!user) throw new Error('User not found in organization');
+    if (user.isProductOwner) {
+      throw new Error('Cannot remove the Product Owner');
+    }
+    if (user.id === callerId) {
+      throw new Error('Cannot remove yourself from the organization');
+    }
+    dbCache.users = dbCache.users.filter((u) => u.id !== userId);
+    dbCache.sessions = dbCache.sessions.filter((s) => s.userId !== userId);
+    dbCache.teams.forEach((t) => {
+      t.memberUserIds = t.memberUserIds.filter((id) => id !== userId);
+      if (t.leadUserId === userId) t.leadUserId = undefined;
+    });
+    saveDatabase(dbCache);
+    return true;
+  },
+
+  getOrganizationTeams(orgId: string): Team[] {
+    return dbCache.teams.filter((t) => t.orgId === orgId);
+  },
+
+  createTeam(
+    orgId: string,
+    payload: {
+      name: string;
+      description?: string;
+      leadUserId?: string;
+      memberUserIds?: string[];
+    }
+  ): Team {
+    const teamId = `team-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+    const newTeam: Team = {
+      id: teamId,
+      orgId,
+      name: payload.name.trim(),
+      description: payload.description?.trim() || '',
+      leadUserId: payload.leadUserId,
+      memberUserIds: payload.memberUserIds || [],
+      createdAt: new Date().toISOString(),
+    };
+    dbCache.teams.push(newTeam);
+    (payload.memberUserIds || []).forEach((uid) => {
+      const u = dbCache.users.find((user) => user.id === uid);
+      if (u && !u.teams?.includes(newTeam.name)) {
+        u.teams = [...(u.teams || []), newTeam.name];
+      }
+    });
+    saveDatabase(dbCache);
+    return newTeam;
+  },
+
+  updateTeam(orgId: string, teamId: string, updates: Partial<Team>): Team {
+    const team = dbCache.teams.find((t) => t.id === teamId && t.orgId === orgId);
+    if (!team) throw new Error('Team not found');
+    if (updates.name) team.name = updates.name.trim();
+    if (updates.description !== undefined) team.description = updates.description.trim();
+    if (updates.leadUserId !== undefined) team.leadUserId = updates.leadUserId;
+    if (updates.memberUserIds !== undefined) team.memberUserIds = updates.memberUserIds;
+    saveDatabase(dbCache);
+    return team;
+  },
+
+  deleteTeam(orgId: string, teamId: string): boolean {
+    const team = dbCache.teams.find((t) => t.id === teamId && t.orgId === orgId);
+    if (!team) throw new Error('Team not found');
+    const teamName = team.name;
+    dbCache.teams = dbCache.teams.filter((t) => t.id !== teamId);
+    dbCache.users.forEach((u) => {
+      if (u.teams?.includes(teamName)) {
+        u.teams = u.teams.filter((t) => t !== teamName);
+      }
+    });
+    saveDatabase(dbCache);
+    return true;
+  },
+
+  // PRODUCT OWNER OPERATIONS
+  getAllUsersAcrossOrgs(): User[] {
+    return dbCache.users.map(sanitizeUser);
+  },
+
+  assignProductAdmin(userId: string): User {
+    const user = dbCache.users.find((u) => u.id === userId);
+    if (!user) throw new Error('User not found');
+    user.isProductAdmin = true;
+    if (user.role !== 'PRODUCT_OWNER') {
+      user.role = 'PRODUCT_ADMIN';
+    }
+    saveDatabase(dbCache);
+    return sanitizeUser(user);
+  },
+
+  revokeProductAdmin(userId: string): User {
+    const user = dbCache.users.find((u) => u.id === userId);
+    if (!user) throw new Error('User not found');
+    if (user.isProductOwner) {
+      throw new Error('Cannot revoke Product Admin privileges from the Product Owner');
+    }
+    user.isProductAdmin = false;
+    const org = dbCache.organizations.find((o) => o.id === user.orgId);
+    if (org && org.ownerUserId === user.id) {
+      user.role = 'ORG_ADMIN';
+    } else {
+      user.role = 'ENGINEER';
+    }
+    saveDatabase(dbCache);
+    return sanitizeUser(user);
+  },
+
   // SERVICE OPERATIONS
-  getServices(): Service[] {
-    return [...dbCache.services].sort((a, b) => a.name.localeCompare(b.name));
+  getServices(orgId?: string, allowGlobal = false): Service[] {
+    if (!orgId && !allowGlobal) return [];
+    let result = [...dbCache.services];
+    if (orgId) {
+      result = result.filter((s) => s.orgId === orgId);
+    }
+    return result.sort((a, b) => a.name.localeCompare(b.name));
   },
 
-  getServiceById(id: string): Service | undefined {
-    return dbCache.services.find((s) => s.id === id);
+  getServiceById(id: string, orgId?: string): Service | undefined {
+    return dbCache.services.find((s) => s.id === id && (!orgId || s.orgId === orgId));
   },
 
-  createService(payload: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>): Service {
+  createService(payload: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>, user?: User): Service {
+    const orgId = user?.orgId || payload.orgId || 'org-default';
     const newService: Service = {
       ...payload,
+      orgId,
       id: `srv-${payload.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString(36)}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -657,8 +1614,8 @@ export const db = {
     return newService;
   },
 
-  updateService(id: string, updates: Partial<Omit<Service, 'id' | 'createdAt'>>): Service {
-    const index = dbCache.services.findIndex((s) => s.id === id);
+  updateService(id: string, updates: Partial<Omit<Service, 'id' | 'createdAt'>>, orgId?: string): Service {
+    const index = dbCache.services.findIndex((s) => s.id === id && (!orgId || s.orgId === orgId));
     if (index === -1) {
       throw new Error(`Service with id ${id} not found`);
     }
@@ -682,9 +1639,9 @@ export const db = {
     return updated;
   },
 
-  deleteService(id: string): boolean {
+  deleteService(id: string, orgId?: string): boolean {
     const initialLen = dbCache.services.length;
-    dbCache.services = dbCache.services.filter((s) => s.id !== id);
+    dbCache.services = dbCache.services.filter((s) => s.id !== id && (!orgId || s.orgId !== orgId));
     if (dbCache.services.length !== initialLen) {
       saveDatabase(dbCache);
       return true;
@@ -693,13 +1650,26 @@ export const db = {
   },
 
   // INCIDENT OPERATIONS
-  getIncidents(filters?: {
-    severity?: Severity;
-    status?: IncidentStatus;
-    serviceId?: string;
-    search?: string;
-  }): Incident[] {
+  getIncidents(
+    orgId?: string,
+    filters?: {
+      severity?: Severity;
+      status?: IncidentStatus;
+      serviceId?: string;
+      search?: string;
+      allowGlobal?: boolean;
+    }
+  ): Incident[] {
+    // JIRA multi-tenancy rule: Incidents are strictly tenant-scoped unless explicitly authorized global
+    if (!orgId && !filters?.allowGlobal) {
+      return [];
+    }
+
     let result = [...dbCache.incidents];
+
+    if (orgId) {
+      result = result.filter((i) => i.orgId === orgId);
+    }
 
     if (filters?.severity) {
       result = result.filter((i) => i.severity === filters.severity);
@@ -717,7 +1687,8 @@ export const db = {
           i.incidentNumber.toLowerCase().includes(q) ||
           i.title.toLowerCase().includes(q) ||
           i.description.toLowerCase().includes(q) ||
-          i.serviceName.toLowerCase().includes(q)
+          i.serviceName.toLowerCase().includes(q) ||
+          (i.assignedEngineer && i.assignedEngineer.toLowerCase().includes(q))
       );
     }
 
@@ -727,9 +1698,11 @@ export const db = {
     );
   },
 
-  getIncidentById(id: string): Incident | undefined {
+  getIncidentById(id: string, orgId?: string, allowGlobal = false): Incident | undefined {
     return dbCache.incidents.find(
-      (i) => i.id === id || i.incidentNumber.toLowerCase() === id.toLowerCase()
+      (i) =>
+        (i.id === id || i.incidentNumber.toLowerCase() === id.toLowerCase()) &&
+        (allowGlobal || !orgId || i.orgId === orgId)
     );
   },
 
@@ -749,18 +1722,24 @@ export const db = {
     },
     user: User
   ): Incident {
-    const service = db.getServiceById(payload.serviceId);
+    const service = db.getServiceById(payload.serviceId, user.orgId) || db.getServiceById(payload.serviceId);
     if (!service) {
       throw new Error(`Service not found with ID ${payload.serviceId}`);
     }
 
-    // Generate next sequential incident number
-    const count = dbCache.incidents.length + 125;
-    const incidentNumber = `INC-2026-${String(count).padStart(5, '0')}`;
+    const org = dbCache.organizations.find((o) => o.id === user.orgId);
+    const prefix = org?.ticketPrefix || generateTicketPrefix(org?.name || user.orgName || 'INC');
+
+    // JIRA-style sequential ticket key per organization (e.g. BSOL-001, BSOL-002)
+    const orgTickets = dbCache.incidents.filter((i) => i.orgId === user.orgId);
+    const nextTicketNum = orgTickets.length + 1;
+    const incidentNumber = `${prefix}-${String(nextTicketNum).padStart(3, '0')}`;
     const now = new Date().toISOString();
 
     const newIncident: Incident = {
-      id: `inc-${Date.now().toString(36)}`,
+      id: `inc-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
+      orgId: user.orgId,
+      orgName: user.orgName,
       incidentNumber,
       title: payload.title,
       description: payload.description,
@@ -786,8 +1765,8 @@ export const db = {
     // If service was healthy and severity is SEV-1/SEV-2, degrade service health
     if (['SEV-1', 'SEV-2'].includes(payload.severity)) {
       db.updateService(service.id, {
-        healthStatus: payload.severity === 'SEV-1' ? 'DEGRADED' : 'DEGRADED',
-      });
+        healthStatus: 'DEGRADED',
+      }, user.orgId);
     }
 
     // Add initial creation timeline event
@@ -1052,9 +2031,17 @@ export const db = {
   },
 
   // DASHBOARD STATS
-  getDashboardStats(): DashboardStats {
-    const incidents = dbCache.incidents;
-    const services = dbCache.services;
+  getDashboardStats(orgId?: string, allowGlobal = false): DashboardStats {
+    const incidents = orgId
+      ? dbCache.incidents.filter((i) => i.orgId === orgId)
+      : allowGlobal
+      ? dbCache.incidents
+      : [];
+    const services = orgId
+      ? dbCache.services.filter((s) => s.orgId === orgId)
+      : allowGlobal
+      ? dbCache.services
+      : [];
 
     const openStatuses: IncidentStatus[] = ['DETECTED', 'TRIAGED', 'INVESTIGATING', 'MITIGATING'];
     const openIncidents = incidents.filter((i) => openStatuses.includes(i.status));
@@ -1069,7 +2056,7 @@ export const db = {
     const resolvedList = incidents.filter(
       (i) => (i.status === 'RESOLVED' || i.status === 'CLOSED') && i.resolvedTime && (i.startedTime || i.detectedTime)
     );
-    let avgResolutionMinutes = 38;
+    let avgResolutionMinutes = 0;
     if (resolvedList.length > 0) {
       const totalMinutes = resolvedList.reduce((acc, inc) => {
         const start = new Date(inc.startedTime || inc.detectedTime).getTime();
@@ -1084,7 +2071,7 @@ export const db = {
     const acknowledgedList = incidents.filter(
       (i) => i.acknowledgedTime && (i.detectedTime || i.startedTime)
     );
-    let avgAcknowledgeMinutes = 4.2;
+    let avgAcknowledgeMinutes = 0;
     if (acknowledgedList.length > 0) {
       const totalAckMin = acknowledgedList.reduce((acc, inc) => {
         const detected = new Date(inc.detectedTime || inc.startedTime).getTime();
@@ -1308,15 +2295,18 @@ export const db = {
     return inv;
   },
 
-  // RESET DEMO DATA
+  // RESET DATA
   resetDemoData(): void {
     dbCache = {
-      users: SEED_USERS,
-      services: SEED_SERVICES,
-      incidents: SEED_INCIDENTS,
-      evidence: SEED_EVIDENCE,
-      timelineEvents: SEED_TIMELINE_EVENTS,
-      investigations: getInitialSeedInvestigations(),
+      organizations: dbCache.organizations,
+      teams: dbCache.teams,
+      users: dbCache.users,
+      sessions: dbCache.sessions,
+      services: [],
+      incidents: [],
+      evidence: [],
+      timelineEvents: [],
+      investigations: [],
     };
     saveDatabase(dbCache);
   },

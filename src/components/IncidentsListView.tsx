@@ -204,25 +204,43 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
             <tbody className="divide-y divide-slate-100 dark:divide-white/[0.06] font-sans">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-500 font-mono">
-                    <Filter className="w-8 h-8 mx-auto mb-2 text-slate-400 dark:text-slate-600" />
-                    <div>No incidents found matching criteria.</div>
-                    <button
-                      onClick={() => {
-                        setSearchTerm('');
-                        setSeverityFilter('ALL');
-                        setStatusFilter('ALL');
-                        setServiceFilter('ALL');
-                      }}
-                      className="mt-2 text-xs text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
-                    >
-                      Reset filters
-                    </button>
+                  <td colSpan={9} className="py-12 text-center text-slate-500 font-sans">
+                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
+                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      {incidents.length === 0 ? 'No incidents reported yet' : 'No incidents matching filters'}
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                      {incidents.length === 0
+                        ? 'All monitored systems and services are operating normally without active outages.'
+                        : 'Try resetting your search query or severity/status filters.'}
+                    </p>
+                    {incidents.length === 0 ? (
+                      <button
+                        onClick={onOpenDeclareIncident}
+                        disabled={currentUser.role === 'VIEWER'}
+                        className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-red-600 hover:bg-red-500 text-white text-xs font-medium cursor-pointer shadow-xs transition-colors"
+                      >
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        <span>Declare Incident</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSearchTerm('');
+                          setSeverityFilter('ALL');
+                          setStatusFilter('ALL');
+                          setServiceFilter('ALL');
+                        }}
+                        className="mt-3 text-xs text-teal-600 dark:text-teal-400 hover:underline cursor-pointer font-medium"
+                      >
+                        Reset filters
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (
                 filtered.map((incident) => {
-                  const isPrimaryDemo = incident.id === 'inc-2026-00124';
+                  const isCriticalActive = incident.severity === 'SEV-1' && ['DETECTED', 'TRIAGED', 'INVESTIGATING'].includes(incident.status);
 
                   return (
                     <tr
@@ -230,14 +248,14 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                       id={`incident-item-${incident.id}`}
                       onClick={() => onSelectIncident(incident.id)}
                       className={`group hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer ${
-                        isPrimaryDemo ? 'bg-teal-500/5' : ''
+                        isCriticalActive ? 'bg-red-500/[0.03] dark:bg-red-500/[0.05]' : ''
                       }`}
                     >
                       {/* ID */}
                       <td className="py-3.5 px-4 whitespace-nowrap font-mono font-bold text-slate-900 dark:text-slate-100 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                         <div className="flex items-center gap-2">
-                          {isPrimaryDemo && (
-                            <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse shrink-0" />
+                          {isCriticalActive && (
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
                           )}
                           <span>{incident.incidentNumber}</span>
                         </div>

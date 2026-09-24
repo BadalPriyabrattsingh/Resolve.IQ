@@ -2,13 +2,15 @@ import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { db } from './server/db.ts';
-import { ROLE_PERMISSIONS, User, HypothesisStatus } from './src/types.ts';
+import { ROLE_PERMISSIONS, User, HypothesisStatus, Organization, Team, UserRole } from './src/types.ts';
 import { runInvestigationAnalysis, answerInvestigationQuery } from './server/aiInvestigation.ts';
 
 declare global {
   namespace Express {
     interface Request {
       currentUser?: User;
+      currentOrg?: Organization;
+      authToken?: string;
     }
   }
 }
@@ -19,18 +21,46 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Simple authentication resolution middleware
+  // Real authentication resolution middleware via Bearer token or x-auth-token
   app.use((req: Request, res: Response, next: NextFunction) => {
-    const userId = (req.headers['x-user-id'] as string) || '';
-    const users = db.getUsers();
-    let user = users.find((u) => u.id === userId);
-    if (!user) {
-      // Default to Sarah Chen (Incident Commander)
-      user = users.find((u) => u.role === 'INCIDENT_MANAGER') || users[0];
+    let token = '';
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7).trim();
+    } else if (req.headers['x-auth-token']) {
+      token = (req.headers['x-auth-token'] as string).trim();
     }
-    req.currentUser = user;
+
+    if (token) {
+      const sessionData = db.getUserBySession(token);
+      if (sessionData) {
+        req.currentUser = sessionData.user;
+        req.currentOrg = sessionData.organization;
+        req.authToken = token;
+      }
+    } else {
+      // Fallback lookup by x-user-id if explicitly provided
+      const userId = (req.headers['x-user-id'] as string) || '';
+      if (userId) {
+        const user = db.getUserById(userId);
+        if (user) {
+          req.currentUser = user;
+          const org = db.getOrganizationById(user.orgId);
+          if (org) req.currentOrg = org;
+        }
+      }
+    }
+
     next();
   });
+
+  // Guard middleware for protected endpoints
+  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.currentUser) {
+      return res.status(401).json({ error: 'Authentication required. Please sign in.' });
+    }
+    next();
+  };
 
   // ================= API ROUTES =================
 
@@ -39,23 +69,383 @@ async function startServer() {
     res.json({ status: 'ok', time: new Date().toISOString(), platform: 'ResolveIQ' });
   });
 
-  // 2. Auth endpoints
-  app.get('/api/auth/users', (req: Request, res: Response) => {
-    res.json({ users: db.getUsers() });
+  // 2. Setup status (checks if database has any registered users)
+  app.get('/api/auth/setup-status', (req: Request, res: Response) => {
+    res.json({
+      hasUsers: db.hasUsers(),
+      userCount: db.getUsers().length,
+    });
+  });
+
+  // 3. User Registration (first user of any org is Org Admin; first user of entire platform is Product Owner)
+  app.post('/api/auth/register', (req: Request, res: Response) => {
+    const { name, email, password, organizationName, title } = req.body;
+    if (!name || !email || !password || !organizationName) {
+      return res.status(400).json({
+        error: 'Please fill in all required fields (Name, Email, Password, and Organization Name).',
+      });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+    }
+
+    try {
+      const result = db.registerUser({
+        name,
+        email,
+        password,
+        organizationName,
+        title,
+      });
+
+      res.status(201).json({
+        token: result.token,
+        user: result.user,
+        organization: result.organization,
+        permissions: ROLE_PERMISSIONS[result.user.role],
+      });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  // 4. User Login
+  app.post('/api/auth/login', (req: Request, res: Response) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    try {
+      const result = db.loginUser({ email, password });
+      res.json({
+        token: result.token,
+        user: result.user,
+        organization: result.organization,
+        permissions: ROLE_PERMISSIONS[result.user.role],
+      });
+    } catch (err) {
+      res.status(401).json({ error: (err as Error).message });
+    }
+  });
+
+  // 5. User Logout
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
+    if (req.authToken) {
+      db.logoutUser(req.authToken);
+    }
+    res.json({ message: 'Signed out successfully' });
+  });
+
+  // 6. Get Current User / Session Check
+  app.get('/api/auth/me', requireAuth, (req: Request, res: Response) => {
+    const sessionData = req.authToken ? db.getUserBySession(req.authToken) : null;
+    const user = sessionData?.user || req.currentUser!;
+    const org = sessionData?.organization || req.currentOrg || db.getOrganizationById(user.orgId);
+    res.json({
+      user,
+      organization: org,
+      availableOrganizations: sessionData?.availableOrganizations || (org ? [org] : []),
+      permissions: ROLE_PERMISSIONS[user.role],
+    });
+  });
+
+  app.post('/api/auth/switch-org', requireAuth, (req: Request, res: Response) => {
+    const { orgId } = req.body;
+    if (!orgId) return res.status(400).json({ error: 'Organization ID is required' });
+    try {
+      const sessionData = db.switchUserOrganization(req.authToken!, orgId);
+      res.json({
+        user: sessionData.user,
+        organization: sessionData.organization,
+        availableOrganizations: sessionData.availableOrganizations,
+        permissions: ROLE_PERMISSIONS[sessionData.user.role],
+      });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
   });
 
   app.get('/api/auth/current', (req: Request, res: Response) => {
-    const user = req.currentUser!;
+    if (!req.currentUser) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    const user = req.currentUser;
     res.json({
       user,
       permissions: ROLE_PERMISSIONS[user.role],
     });
   });
 
+  app.get('/api/auth/users', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    // In JIRA, user roster is scoped to the tenant organization (including synced contractors)
+    const members = db.getOrganizationMembers(user.orgId);
+    res.json({ users: members });
+  });
+
+  // 7. Organization & Team Management Routes
+  app.get('/api/org/info', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const org = db.getOrganizationById(user.orgId) || req.currentOrg;
+    if (!org) return res.status(404).json({ error: 'Organization not found' });
+    res.json({ organization: org });
+  });
+
+  app.get('/api/org/members', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const members = db.getOrganizationMembers(user.orgId);
+    res.json({ members });
+  });
+
+  // Contractor Mapping & Outsourcing Sync Routes
+  app.get('/api/org/contractors', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const contractors = db.getContractorMappings(user.orgId);
+    res.json({ contractors });
+  });
+
+  app.get('/api/org/contractors/lookup', requireAuth, (req: Request, res: Response) => {
+    const email = (req.query.email as string) || '';
+    if (!email) return res.status(400).json({ error: 'Email query parameter required' });
+    const result = db.lookupContractorByActualEmail(email);
+    res.json(result);
+  });
+
+  app.post('/api/org/contractors', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageMembers && !user.isProductOwner) {
+      return res.status(403).json({ error: 'Only Organization Admins can map outsourced contractors' });
+    }
+    const { actualEmail, contractorEmail, contractorId, vendorCompany, contractorName, role, title, teams, temporaryPassword } = req.body;
+    if (!actualEmail || !contractorEmail || !contractorId || !vendorCompany) {
+      return res.status(400).json({
+        error: 'Please provide Actual Mail ID, Client Contractor Mail, Contractor Badge ID, and Vendor Company',
+      });
+    }
+    try {
+      const mapping = db.syncContractorMapping(user.orgId, {
+        actualEmail,
+        contractorEmail,
+        contractorId,
+        vendorCompany,
+        contractorName,
+        role: role as UserRole,
+        title,
+        teams,
+        temporaryPassword,
+      });
+      res.status(201).json({ contractor: mapping, message: `Contractor ${actualEmail} synced with ${contractorEmail}` });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.post('/api/org/contractors/:id/resync', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageMembers && !user.isProductOwner) {
+      return res.status(403).json({ error: 'Only Organization Admins can resync contractors' });
+    }
+    try {
+      const updated = db.resyncContractor(user.orgId, req.params.id);
+      res.json({ contractor: updated, message: 'Contractor identity synchronized with primary directory' });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.delete('/api/org/contractors/:id', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageMembers && !user.isProductOwner) {
+      return res.status(403).json({ error: 'Only Organization Admins can unlink contractors' });
+    }
+    try {
+      db.deleteContractorMapping(user.orgId, req.params.id);
+      res.json({ message: 'Contractor mapping unlinked successfully' });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.post('/api/org/members', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageMembers) {
+      return res.status(403).json({ error: 'Only Organization Admins or Product Owners can add members' });
+    }
+    const { name, email, contractorEmail, contractorId, isContractor, vendorCompany, password, role, title, teams } = req.body;
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ error: 'Missing name, email, password, or role' });
+    }
+    try {
+      const newMember = db.addOrganizationMember(user.orgId, {
+        name,
+        email,
+        contractorEmail,
+        contractorId,
+        isContractor,
+        vendorCompany,
+        password,
+        role: role as UserRole,
+        title,
+        teams,
+      });
+      res.status(201).json({ member: newMember });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.put('/api/org/members/:id', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageMembers) {
+      return res.status(403).json({ error: 'Only Organization Admins can manage members' });
+    }
+    try {
+      const updated = db.updateMember(user.orgId, req.params.id, req.body);
+      res.json({ member: updated });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.put('/api/org/members/:id/role', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageMembers) {
+      return res.status(403).json({ error: 'Only Organization Admins can manage roles' });
+    }
+    const { role } = req.body;
+    if (!role) return res.status(400).json({ error: 'Role is required' });
+    try {
+      const updated = db.updateMemberRole(user.orgId, req.params.id, role as UserRole);
+      res.json({ member: updated });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.delete('/api/org/members/:id', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageMembers) {
+      return res.status(403).json({ error: 'Only Organization Admins can remove members' });
+    }
+    try {
+      db.removeMember(user.orgId, req.params.id, user.id);
+      res.json({ message: 'Member removed successfully' });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.get('/api/org/teams', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const teams = db.getOrganizationTeams(user.orgId);
+    res.json({ teams });
+  });
+
+  app.post('/api/org/teams', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageTeams) {
+      return res.status(403).json({ error: 'Only Organization Admins can create teams' });
+    }
+    const { name, description, leadUserId, memberUserIds } = req.body;
+    if (!name) return res.status(400).json({ error: 'Team name is required' });
+    try {
+      const team = db.createTeam(user.orgId, { name, description, leadUserId, memberUserIds });
+      res.status(201).json({ team });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.put('/api/org/teams/:id', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageTeams) {
+      return res.status(403).json({ error: 'Only Organization Admins can edit teams' });
+    }
+    try {
+      const team = db.updateTeam(user.orgId, req.params.id, req.body);
+      res.json({ team });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.delete('/api/org/teams/:id', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageTeams) {
+      return res.status(403).json({ error: 'Only Organization Admins can delete teams' });
+    }
+    try {
+      db.deleteTeam(user.orgId, req.params.id);
+      res.json({ message: 'Team deleted successfully' });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  // 8. Product Administration Routes (Product Owner & Product Admins)
+  app.get('/api/admin/users', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    if (!user.isProductOwner && !user.isProductAdmin && user.role !== 'PRODUCT_OWNER' && user.role !== 'PRODUCT_ADMIN') {
+      return res.status(403).json({ error: 'Access restricted to Product Owner and Product Admins' });
+    }
+    const users = db.getAllUsersAcrossOrgs();
+    res.json({ users });
+  });
+
+  app.post('/api/admin/assign-product-admin', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    if (!user.isProductOwner && user.role !== 'PRODUCT_OWNER') {
+      return res.status(403).json({ error: 'Only the Product Owner can assign Product Admins' });
+    }
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+    try {
+      const updated = db.assignProductAdmin(userId);
+      res.json({ user: updated, message: `${updated.name} has been appointed as Product Admin.` });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.post('/api/admin/revoke-product-admin', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    if (!user.isProductOwner && user.role !== 'PRODUCT_OWNER') {
+      return res.status(403).json({ error: 'Only the Product Owner can revoke Product Admin permissions' });
+    }
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+    try {
+      const updated = db.revokeProductAdmin(userId);
+      res.json({ user: updated, message: `Product Admin privileges revoked for ${updated.name}.` });
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+    }
+  });
+
+  app.get('/api/admin/organizations', requireAuth, (req: Request, res: Response) => {
+    const user = req.currentUser!;
+    if (!user.isProductOwner && !user.isProductAdmin && user.role !== 'PRODUCT_OWNER' && user.role !== 'PRODUCT_ADMIN') {
+      return res.status(403).json({ error: 'Access restricted to Product Owner and Product Admins' });
+    }
+    const organizations = db.getAllOrganizations();
+    res.json({ organizations });
+  });
+
   // 3. Dashboard Stats
   app.get('/api/dashboard/stats', (req: Request, res: Response) => {
     try {
-      const stats = db.getDashboardStats();
+      const stats = db.getDashboardStats(req.currentUser?.orgId);
       res.json(stats);
     } catch (err) {
       console.error('Failed to get dashboard stats:', err);
@@ -65,11 +455,11 @@ async function startServer() {
 
   // 4. Services
   app.get('/api/services', (req: Request, res: Response) => {
-    res.json({ services: db.getServices() });
+    res.json({ services: db.getServices(req.currentUser?.orgId) });
   });
 
   app.get('/api/services/:id', (req: Request, res: Response) => {
-    const service = db.getServiceById(req.params.id);
+    const service = db.getServiceById(req.params.id, req.currentUser?.orgId);
     if (!service) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -97,7 +487,7 @@ async function startServer() {
         criticality,
         repositoryUrl: repositoryUrl || '',
         healthStatus: healthStatus || 'HEALTHY',
-      });
+      }, user);
       res.status(201).json({ service });
     } catch (err) {
       res.status(400).json({ error: (err as Error).message });
@@ -112,7 +502,7 @@ async function startServer() {
     }
 
     try {
-      const service = db.updateService(req.params.id, req.body);
+      const service = db.updateService(req.params.id, req.body, user.orgId);
       res.json({ service });
     } catch (err) {
       res.status(404).json({ error: (err as Error).message });
@@ -121,11 +511,12 @@ async function startServer() {
 
   app.delete('/api/services/:id', (req: Request, res: Response) => {
     const user = req.currentUser!;
-    if (user.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Only ADMINs can delete services' });
+    const perms = ROLE_PERMISSIONS[user.role];
+    if (!perms.canManageServices) {
+      return res.status(403).json({ error: 'You do not have permission to delete services' });
     }
 
-    const success = db.deleteService(req.params.id);
+    const success = db.deleteService(req.params.id, user.orgId);
     if (!success) {
       return res.status(404).json({ error: 'Service not found' });
     }
@@ -135,7 +526,7 @@ async function startServer() {
   // 5. Incidents
   app.get('/api/incidents', (req: Request, res: Response) => {
     const { severity, status, serviceId, search } = req.query;
-    const incidents = db.getIncidents({
+    const incidents = db.getIncidents(req.currentUser?.orgId, {
       severity: severity as any,
       status: status as any,
       serviceId: serviceId as string,
@@ -145,7 +536,7 @@ async function startServer() {
   });
 
   app.get('/api/incidents/:id', (req: Request, res: Response) => {
-    const incident = db.getIncidentById(req.params.id);
+    const incident = db.getIncidentById(req.params.id, req.currentUser?.orgId) || db.getIncidentById(req.params.id);
     if (!incident) {
       return res.status(404).json({ error: `Incident ${req.params.id} not found` });
     }

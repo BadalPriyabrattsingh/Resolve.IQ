@@ -37,6 +37,55 @@ function getGeminiClient(): GoogleGenAI | null {
 }
 
 /**
+ * Helper to call Gemini with timeout and fallback model on transient 503 high demand
+ */
+async function callGeminiWithFallback(
+  ai: GoogleGenAI,
+  req: {
+    contents: string;
+    config: any;
+    timeoutMs?: number;
+  }
+) {
+  const modelsToTry = ['gemini-3.8-flash', 'gemini-3.1-pro-preview'];
+  let lastError: any = null;
+
+  for (const model of modelsToTry) {
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Gemini API timeout (${model})`)), req.timeoutMs || 5000)
+      );
+
+      const response = (await Promise.race([
+        ai.models.generateContent({
+          model,
+          contents: req.contents,
+          config: req.config,
+        }),
+        timeoutPromise,
+      ])) as any;
+
+      if (response?.text) {
+        return response;
+      }
+    } catch (err: any) {
+      lastError = err;
+      const isUnavailable =
+        err?.status === 503 ||
+        String(err?.message || '').includes('503') ||
+        String(err?.message || '').includes('UNAVAILABLE') ||
+        String(err?.message || '').includes('high demand');
+      if (isUnavailable) {
+        // Try fallback model
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError;
+}
+
+/**
  * Generate a comprehensive investigation using Gemini or deterministic evidence synthesis
  */
 export async function runInvestigationAnalysis(
@@ -53,8 +102,17 @@ export async function runInvestigationAnalysis(
       if (generated) {
         return generated;
       }
-    } catch (err) {
-      console.warn('Gemini analysis failed or returned invalid JSON, falling back to deterministic synthesis:', err);
+    } catch (err: any) {
+      const isHighDemand =
+        err?.status === 503 ||
+        String(err?.message || '').includes('503') ||
+        String(err?.message || '').includes('high demand') ||
+        String(err?.message || '').includes('UNAVAILABLE');
+      if (isHighDemand) {
+        console.log('[ResolveIQ SRE Copilot] Model at peak demand, smoothly switching to deterministic evidence synthesis.');
+      } else {
+        console.warn('Gemini analysis unavailable, using deterministic evidence synthesis:', err?.message || err);
+      }
     }
   }
 
@@ -172,22 +230,15 @@ ${JSON.stringify(
   2
 )}`;
 
-  const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error('Gemini API timeout')), 3500)
-  );
-
-  const response = (await Promise.race([
-    ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: 'application/json',
-        temperature: 0.2,
-      },
-    }),
-    timeoutPromise,
-  ])) as any;
+  const response = await callGeminiWithFallback(ai, {
+    contents: prompt,
+    config: {
+      systemInstruction: systemPrompt,
+      responseMimeType: 'application/json',
+      temperature: 0.2,
+    },
+    timeoutMs: 6000,
+  });
 
   const text = response?.text;
   if (!text) return null;
@@ -667,21 +718,14 @@ Engineer's Question: "${userQuery}"
 
 Provide a concise, evidence-grounded answer:`;
 
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Gemini API timeout')), 3500)
-      );
-
-      const response = (await Promise.race([
-        client.models.generateContent({
-          model: 'gemini-3.8-flash',
-          contents: prompt,
-          config: {
-            systemInstruction,
-            temperature: 0.2,
-          },
-        }),
-        timeoutPromise,
-      ])) as any;
+      const response = await callGeminiWithFallback(client, {
+        contents: prompt,
+        config: {
+          systemInstruction,
+          temperature: 0.2,
+        },
+        timeoutMs: 6000,
+      });
 
       const text = response?.text;
       if (text) {
@@ -695,8 +739,17 @@ Provide a concise, evidence-grounded answer:`;
           groundedEvidence: groundedEvidence.length > 0 ? groundedEvidence : evidenceList.slice(0, 2).map((e) => e.id),
         };
       }
-    } catch (err) {
-      console.warn('Gemini chat failed, using fallback responses:', err);
+    } catch (err: any) {
+      const isHighDemand =
+        err?.status === 503 ||
+        String(err?.message || '').includes('503') ||
+        String(err?.message || '').includes('high demand') ||
+        String(err?.message || '').includes('UNAVAILABLE');
+      if (isHighDemand) {
+        console.log('[ResolveIQ SRE Copilot] API capacity peak, serving deterministic grounded Q&A response.');
+      } else {
+        console.warn('Gemini chat unavailable, serving deterministic response:', err?.message || err);
+      }
     }
   }
 

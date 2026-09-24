@@ -10,9 +10,31 @@ import {
   Investigation,
   Hypothesis,
   HypothesisStatus,
+  Organization,
+  Team,
+  UserRole,
+  RolePermissions,
 } from './types';
 
-let currentUserId = 'usr-ic-1'; // Default to Sarah Chen (Incident Manager)
+let currentAuthToken = localStorage.getItem('resolveiq_auth_token') || '';
+let currentUserId = localStorage.getItem('resolveiq_user_id') || '';
+
+export function getAuthToken(): string {
+  if (!currentAuthToken) {
+    currentAuthToken = localStorage.getItem('resolveiq_auth_token') || '';
+  }
+  return currentAuthToken;
+}
+
+export function setAuthToken(token: string | null) {
+  if (token) {
+    currentAuthToken = token;
+    localStorage.setItem('resolveiq_auth_token', token);
+  } else {
+    currentAuthToken = '';
+    localStorage.removeItem('resolveiq_auth_token');
+  }
+}
 
 export function setCurrentUser(userId: string) {
   currentUserId = userId;
@@ -27,12 +49,28 @@ export function getCurrentUserId(): string {
   return currentUserId;
 }
 
+export function clearAuthSession() {
+  currentAuthToken = '';
+  currentUserId = '';
+  localStorage.removeItem('resolveiq_auth_token');
+  localStorage.removeItem('resolveiq_user_id');
+}
+
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const headers = {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'x-user-id': getCurrentUserId(),
-    ...(options.headers || {}),
+    ...(options.headers as Record<string, string> || {}),
   };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+    headers['x-auth-token'] = token;
+  }
+  const uid = getCurrentUserId();
+  if (uid) {
+    headers['x-user-id'] = uid;
+  }
 
   const response = await fetch(url, { ...options, headers });
   if (!response.ok) {
@@ -51,7 +89,58 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 }
 
 export const api = {
-  // Auth
+  // Auth & Session
+  async getSetupStatus(): Promise<{ hasUsers: boolean; userCount: number }> {
+    return fetchWithAuth('/api/auth/setup-status');
+  },
+
+  async register(payload: {
+    name: string;
+    email: string;
+    password: string;
+    organizationName: string;
+    title?: string;
+  }): Promise<{ token: string; user: User; organization: Organization; permissions: RolePermissions }> {
+    const data = await fetchWithAuth('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (data.token) {
+      setAuthToken(data.token);
+      setCurrentUser(data.user.id);
+    }
+    return data;
+  },
+
+  async login(payload: {
+    email: string;
+    password: string;
+  }): Promise<{ token: string; user: User; organization: Organization; permissions: RolePermissions }> {
+    const data = await fetchWithAuth('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (data.token) {
+      setAuthToken(data.token);
+      setCurrentUser(data.user.id);
+    }
+    return data;
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await fetchWithAuth('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // ignore error
+    } finally {
+      clearAuthSession();
+    }
+  },
+
+  async getMe(): Promise<{ user: User; organization: Organization; permissions: RolePermissions }> {
+    return fetchWithAuth('/api/auth/me');
+  },
+
   async getUsers(): Promise<User[]> {
     const data = await fetchWithAuth('/api/auth/users');
     return data.users;
@@ -59,6 +148,125 @@ export const api = {
 
   async getCurrentUser(): Promise<{ user: User; permissions: any }> {
     return fetchWithAuth('/api/auth/current');
+  },
+
+  // Organization & Team Management
+  async getOrgInfo(): Promise<{ organization: Organization }> {
+    return fetchWithAuth('/api/org/info');
+  },
+
+  async getOrgMembers(): Promise<User[]> {
+    const data = await fetchWithAuth('/api/org/members');
+    return data.members;
+  },
+
+  async addOrgMember(payload: {
+    name: string;
+    email: string;
+    contractorEmail?: string;
+    contractorId?: string;
+    isContractor?: boolean;
+    vendorCompany?: string;
+    password: string;
+    role: UserRole;
+    title?: string;
+    teams?: string[];
+  }): Promise<User> {
+    const data = await fetchWithAuth('/api/org/members', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return data.member;
+  },
+
+  async updateMember(userId: string, updates: {
+    role?: UserRole;
+    contractorEmail?: string;
+    contractorId?: string;
+    isContractor?: boolean;
+    vendorCompany?: string;
+    title?: string;
+    teams?: string[];
+    name?: string;
+  }): Promise<User> {
+    const data = await fetchWithAuth(`/api/org/members/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return data.member;
+  },
+
+  async updateMemberRole(userId: string, role: UserRole): Promise<User> {
+    const data = await fetchWithAuth(`/api/org/members/${userId}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ role }),
+    });
+    return data.member;
+  },
+
+  async removeOrgMember(userId: string): Promise<boolean> {
+    await fetchWithAuth(`/api/org/members/${userId}`, {
+      method: 'DELETE',
+    });
+    return true;
+  },
+
+  async getOrgTeams(): Promise<Team[]> {
+    const data = await fetchWithAuth('/api/org/teams');
+    return data.teams;
+  },
+
+  async createOrgTeam(payload: {
+    name: string;
+    description?: string;
+    leadUserId?: string;
+    memberUserIds?: string[];
+  }): Promise<Team> {
+    const data = await fetchWithAuth('/api/org/teams', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return data.team;
+  },
+
+  async updateOrgTeam(teamId: string, updates: Partial<Team>): Promise<Team> {
+    const data = await fetchWithAuth(`/api/org/teams/${teamId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    return data.team;
+  },
+
+  async deleteOrgTeam(teamId: string): Promise<boolean> {
+    await fetchWithAuth(`/api/org/teams/${teamId}`, {
+      method: 'DELETE',
+    });
+    return true;
+  },
+
+  // Product Owner & Admin Operations
+  async getAllUsersAcrossOrgs(): Promise<User[]> {
+    const data = await fetchWithAuth('/api/admin/users');
+    return data.users;
+  },
+
+  async assignProductAdmin(userId: string): Promise<{ user: User; message: string }> {
+    return fetchWithAuth('/api/admin/assign-product-admin', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+    });
+  },
+
+  async revokeProductAdmin(userId: string): Promise<{ user: User; message: string }> {
+    return fetchWithAuth('/api/admin/revoke-product-admin', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+    });
+  },
+
+  async getAllOrganizations(): Promise<(Organization & { memberCount: number; teamCount: number })[]> {
+    const data = await fetchWithAuth('/api/admin/organizations');
+    return data.organizations;
   },
 
   // Dashboard Stats
@@ -72,20 +280,25 @@ export const api = {
     return data.services;
   },
 
-  async getService(id: string): Promise<Service> {
+  async getServiceById(id: string): Promise<Service> {
     const data = await fetchWithAuth(`/api/services/${id}`);
     return data.service;
   },
 
-  async createService(serviceData: Partial<Service>): Promise<Service> {
+  async createService(
+    service: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<Service> {
     const data = await fetchWithAuth('/api/services', {
       method: 'POST',
-      body: JSON.stringify(serviceData),
+      body: JSON.stringify(service),
     });
     return data.service;
   },
 
-  async updateService(id: string, updates: Partial<Service>): Promise<Service> {
+  async updateService(
+    id: string,
+    updates: Partial<Omit<Service, 'id' | 'createdAt'>>
+  ): Promise<Service> {
     const data = await fetchWithAuth(`/api/services/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
@@ -117,35 +330,39 @@ export const api = {
     return data.incidents;
   },
 
-  async getIncident(id: string): Promise<{ incident: Incident; evidence: Evidence[]; timeline: TimelineEvent[] }> {
-    return fetchWithAuth(`/api/incidents/${id}`);
+  async getIncidentById(id: string): Promise<Incident> {
+    const data = await fetchWithAuth(`/api/incidents/${id}`);
+    return data.incident;
   },
 
-  async createIncident(incidentData: {
-    title: string;
-    description: string;
-    severity: Severity;
-    serviceId: string;
-    environment: 'Production' | 'Staging' | 'Canary';
-    customerImpact: boolean;
-    impactSummary: string;
-    assignedEngineer?: string;
-    incidentManager?: string;
-  }): Promise<Incident> {
+  async getIncident(id: string): Promise<{ incident: Incident; evidence: Evidence[]; timeline: TimelineEvent[] }> {
+    const [incident, evidence, timeline] = await Promise.all([
+      this.getIncidentById(id),
+      this.getEvidenceForIncident(id).catch(() => []),
+      this.getTimelineForIncident(id).catch(() => []),
+    ]);
+    return { incident, evidence, timeline };
+  },
+
+  async createIncident(
+    incident: Partial<Incident> & { title: string; severity: Severity; serviceId: string; description: string }
+  ): Promise<Incident> {
     const data = await fetchWithAuth('/api/incidents', {
       method: 'POST',
-      body: JSON.stringify(incidentData),
+      body: JSON.stringify(incident),
     });
     return data.incident;
   },
 
   async updateIncident(
     id: string,
-    updates: Partial<Incident> & { changeNote?: string }
+    updates: Partial<Incident> & { changeNote?: string },
+    changeNote?: string
   ): Promise<Incident> {
+    const note = changeNote || updates.changeNote;
     const data = await fetchWithAuth(`/api/incidents/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
+      method: 'PUT',
+      body: JSON.stringify({ ...updates, changeNote: note }),
     });
     return data.incident;
   },
@@ -157,7 +374,7 @@ export const api = {
   },
 
   // Evidence
-  async getEvidence(incidentId: string): Promise<Evidence[]> {
+  async getEvidenceForIncident(incidentId: string): Promise<Evidence[]> {
     const data = await fetchWithAuth(`/api/incidents/${incidentId}/evidence`);
     return data.evidence;
   },
@@ -169,6 +386,7 @@ export const api = {
       title: string;
       source: string;
       content: string;
+      metadata?: Record<string, unknown>;
     }
   ): Promise<Evidence> {
     const data = await fetchWithAuth(`/api/incidents/${incidentId}/evidence`, {
@@ -178,16 +396,26 @@ export const api = {
     return data.evidence;
   },
 
-  async deleteEvidence(evidenceId: string): Promise<void> {
-    await fetchWithAuth(`/api/evidence/${evidenceId}`, {
-      method: 'DELETE',
-    });
+  async deleteEvidence(incidentIdOrEvidenceId: string, maybeEvidenceId?: string): Promise<void> {
+    if (maybeEvidenceId) {
+      await fetchWithAuth(`/api/incidents/${incidentIdOrEvidenceId}/evidence/${maybeEvidenceId}`, {
+        method: 'DELETE',
+      });
+    } else {
+      await fetchWithAuth(`/api/evidence/${incidentIdOrEvidenceId}`, {
+        method: 'DELETE',
+      });
+    }
   },
 
   // Timeline
-  async getTimeline(incidentId: string): Promise<TimelineEvent[]> {
+  async getTimelineForIncident(incidentId: string): Promise<TimelineEvent[]> {
     const data = await fetchWithAuth(`/api/incidents/${incidentId}/timeline`);
     return data.timeline;
+  },
+
+  async getTimeline(incidentId: string): Promise<TimelineEvent[]> {
+    return this.getTimelineForIncident(incidentId);
   },
 
   async addTimelineEvent(

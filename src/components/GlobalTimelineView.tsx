@@ -56,6 +56,9 @@ export const GlobalTimelineView: React.FC<GlobalTimelineViewProps> = ({
 
     if (incidents.length > 0) {
       loadAllTimeline();
+    } else {
+      setAllEvents([]);
+      setLoading(false);
     }
   }, [incidents]);
 

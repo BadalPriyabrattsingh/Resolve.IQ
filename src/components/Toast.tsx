@@ -55,12 +55,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const isWarning = toast.type === 'warning';
 
           const borderBgClass = isSuccess
-            ? 'bg-[#0D151C] border-teal-500/50 shadow-teal-950/40 text-[#2dd4bf]'
+            ? 'bg-white dark:bg-[#0D151C] border-teal-500/30 dark:border-teal-500/50 shadow-md dark:shadow-teal-950/40 text-teal-800 dark:text-[#2dd4bf]'
             : isError
-            ? 'bg-[#0D151C] border-[#e07a5f]/50 shadow-black/40 text-[#fca5a5]'
+            ? 'bg-white dark:bg-[#0D151C] border-rose-400/40 dark:border-[#e07a5f]/50 shadow-md dark:shadow-black/40 text-rose-800 dark:text-[#fca5a5]'
             : isWarning
-            ? 'bg-[#0D151C] border-amber-500/50 shadow-amber-950/40 text-amber-300'
-            : 'bg-[#0D151C] border-teal-500/50 shadow-teal-950/40 text-teal-300';
+            ? 'bg-white dark:bg-[#0D151C] border-amber-400/40 dark:border-amber-500/50 shadow-md dark:shadow-amber-950/40 text-amber-800 dark:text-amber-300'
+            : 'bg-white dark:bg-[#0D151C] border-teal-500/30 dark:border-teal-500/50 shadow-md dark:shadow-teal-950/40 text-slate-800 dark:text-teal-300';
 
           return (
             <div
@@ -75,11 +75,11 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-mono font-bold text-slate-100 leading-tight">
+                <div className="text-xs font-mono font-bold text-slate-900 dark:text-slate-100 leading-tight">
                   {toast.title}
                 </div>
                 {toast.message && (
-                  <div className="text-[11px] text-slate-400 font-sans mt-0.5 leading-snug">
+                  <div className="text-[11px] text-slate-600 dark:text-slate-400 font-sans mt-0.5 leading-snug">
                     {toast.message}
                   </div>
                 )}
@@ -87,7 +87,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
               <button
                 onClick={() => removeToast(toast.id)}
-                className="shrink-0 text-slate-400 hover:text-slate-200 transition-colors p-0.5 -mr-1"
+                className="shrink-0 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-0.5 -mr-1 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

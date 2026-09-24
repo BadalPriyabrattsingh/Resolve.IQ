@@ -1,12 +1,72 @@
-export type UserRole = 'ADMIN' | 'INCIDENT_MANAGER' | 'ENGINEER' | 'VIEWER';
+export type UserRole =
+  | 'PRODUCT_OWNER'
+  | 'PRODUCT_ADMIN'
+  | 'ORG_ADMIN'
+  | 'INCIDENT_MANAGER'
+  | 'ENGINEER'
+  | 'VIEWER'
+  | 'ADMIN'; // alias for backwards compatibility
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  ticketPrefix?: string; // JIRA-style key prefix (e.g. "BSOL", "MSFT")
+  incidentCounter?: number;
+  ownerUserId: string;
+  createdAt: string;
+  memberCount?: number;
+  teamCount?: number;
+  isContractorOrg?: boolean;
+}
+
+export interface ContractorMapping {
+  id: string; // cm-xxxx
+  orgId: string; // The client organization where contractor is working (e.g. Microsoft)
+  orgName: string; // "Microsoft"
+  userId?: string; // Target user's primary user ID (e.g. Priyabrattsingh Badal's ID)
+  actualEmail: string; // Primary employer/corporate email (e.g. pbadal@bsol.com)
+  contractorEmail: string; // Client contractor/tenant email (e.g. pbadal@microsoft.com)
+  contractorId: string; // Client vendor badge ID (e.g. CTR-MSFT-1049 or v-pbadal)
+  vendorCompany: string; // Outsourcing firm / vendor employer (e.g. "BSOL" or "Bhardwaj IT Solutions")
+  contractorName: string; // Display name
+  role: UserRole; // Assigned role in client org (e.g. ENGINEER, INCIDENT_MANAGER)
+  title?: string; // Job title in client org
+  teams: string[]; // Operational teams assigned in client org
+  syncStatus: 'SYNCED' | 'PENDING' | 'UNLINKED';
+  lastSyncedAt: string;
+  createdAt: string;
+}
+
+export interface Team {
+  id: string;
+  orgId: string;
+  name: string;
+  description: string;
+  leadUserId?: string;
+  memberUserIds: string[];
+  createdAt: string;
+}
 
 export interface User {
   id: string;
   name: string;
-  email: string;
+  email: string; // Primary employer/actual email (e.g. pbadal@bsol.com)
+  contractorEmail?: string; // Mapped contractor/client tenant email (e.g. pbadal@microsoft.com)
+  contractorId?: string; // Client vendor ID / badge (e.g. v-pbadal, CTR-MSFT-1049)
+  isContractor?: boolean; // Outsourced contractor flag
+  vendorCompany?: string; // Employer/outsourcing firm name (e.g. BSOL)
+  contractorSyncStatus?: 'SYNCED' | 'PENDING' | 'UNLINKED';
+  lastSyncedAt?: string;
   role: UserRole;
+  orgId: string;
+  orgName: string;
   title: string;
   avatarUrl?: string;
+  teams?: string[];
+  isProductOwner?: boolean;
+  isProductAdmin?: boolean;
+  createdAt?: string;
 }
 
 export type Severity = 'SEV-1' | 'SEV-2' | 'SEV-3' | 'SEV-4';
@@ -28,12 +88,13 @@ export type ServiceHealth = ServiceHealthStatus;
 
 export interface Service {
   id: string;
+  orgId?: string;
   name: string;
   description: string;
   owningTeam: string;
   environment: Environment;
   criticality: ServiceCriticality;
-  repositoryUrl: string;
+  repositoryUrl?: string;
   healthStatus: ServiceHealthStatus;
   dependencies?: string[];
   createdAt: string;
@@ -53,6 +114,7 @@ export type EvidenceType =
 
 export interface Evidence {
   id: string;
+  orgId?: string;
   incidentId: string;
   type: EvidenceType;
   title: string;
@@ -75,6 +137,7 @@ export type TimelineEventType =
 
 export interface TimelineEvent {
   id: string;
+  orgId?: string;
   incidentId: string;
   eventType: TimelineEventType;
   title: string;
@@ -87,6 +150,8 @@ export interface TimelineEvent {
 
 export interface Incident {
   id: string;
+  orgId?: string;
+  orgName?: string;
   incidentNumber: string;
   title: string;
   description: string;
@@ -253,9 +318,65 @@ export interface RolePermissions {
   canDeleteIncident: boolean;
   canManageInvestigation: boolean;
   canConfirmHypothesis: boolean;
+  canManageOrg: boolean;
+  canManageTeams: boolean;
+  canManageMembers: boolean;
+  canAssignProductAdmin: boolean;
+  canManageProduct: boolean;
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
+  PRODUCT_OWNER: {
+    canCreateIncident: true,
+    canChangeStatus: true,
+    canChangeSeverity: true,
+    canAssignEngineer: true,
+    canAddEvidence: true,
+    canAddComment: true,
+    canManageServices: true,
+    canDeleteIncident: true,
+    canManageInvestigation: true,
+    canConfirmHypothesis: true,
+    canManageOrg: true,
+    canManageTeams: true,
+    canManageMembers: true,
+    canAssignProductAdmin: true,
+    canManageProduct: true,
+  },
+  PRODUCT_ADMIN: {
+    canCreateIncident: true,
+    canChangeStatus: true,
+    canChangeSeverity: true,
+    canAssignEngineer: true,
+    canAddEvidence: true,
+    canAddComment: true,
+    canManageServices: true,
+    canDeleteIncident: true,
+    canManageInvestigation: true,
+    canConfirmHypothesis: true,
+    canManageOrg: true,
+    canManageTeams: true,
+    canManageMembers: true,
+    canAssignProductAdmin: false,
+    canManageProduct: true,
+  },
+  ORG_ADMIN: {
+    canCreateIncident: true,
+    canChangeStatus: true,
+    canChangeSeverity: true,
+    canAssignEngineer: true,
+    canAddEvidence: true,
+    canAddComment: true,
+    canManageServices: true,
+    canDeleteIncident: true,
+    canManageInvestigation: true,
+    canConfirmHypothesis: true,
+    canManageOrg: true,
+    canManageTeams: true,
+    canManageMembers: true,
+    canAssignProductAdmin: false,
+    canManageProduct: false,
+  },
   ADMIN: {
     canCreateIncident: true,
     canChangeStatus: true,
@@ -267,6 +388,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canDeleteIncident: true,
     canManageInvestigation: true,
     canConfirmHypothesis: true,
+    canManageOrg: true,
+    canManageTeams: true,
+    canManageMembers: true,
+    canAssignProductAdmin: false,
+    canManageProduct: false,
   },
   INCIDENT_MANAGER: {
     canCreateIncident: true,
@@ -279,6 +405,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canDeleteIncident: false,
     canManageInvestigation: true,
     canConfirmHypothesis: true,
+    canManageOrg: false,
+    canManageTeams: false,
+    canManageMembers: false,
+    canAssignProductAdmin: false,
+    canManageProduct: false,
   },
   ENGINEER: {
     canCreateIncident: true,
@@ -291,6 +422,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canDeleteIncident: false,
     canManageInvestigation: true,
     canConfirmHypothesis: true,
+    canManageOrg: false,
+    canManageTeams: false,
+    canManageMembers: false,
+    canAssignProductAdmin: false,
+    canManageProduct: false,
   },
   VIEWER: {
     canCreateIncident: false,
@@ -303,5 +439,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermissions> = {
     canDeleteIncident: false,
     canManageInvestigation: false,
     canConfirmHypothesis: false,
+    canManageOrg: false,
+    canManageTeams: false,
+    canManageMembers: false,
+    canAssignProductAdmin: false,
+    canManageProduct: false,
   },
 };
