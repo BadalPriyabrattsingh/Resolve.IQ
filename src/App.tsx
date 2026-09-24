@@ -11,13 +11,16 @@ import { CreateIncidentModal } from './components/CreateIncidentModal';
 import { AddEvidenceModal } from './components/AddEvidenceModal';
 import { AddServiceModal } from './components/AddServiceModal';
 import { LoginGateway } from './components/LoginGateway';
+import { InteractiveTutorial } from './components/InteractiveTutorial';
 import { api, setCurrentUser } from './api';
 import { User, Incident, Service, DashboardStats } from './types';
 
 export function App() {
   const [currentTab, setCurrentTab] = useState<NavigationTab>('dashboard');
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [incidentTab, setIncidentTab] = useState<'investigation' | 'actions' | 'timeline' | 'evidence'>('investigation');
   const [showAuthGateway, setShowAuthGateway] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // Core Data
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -127,15 +130,14 @@ export function App() {
 
   if (isLoading || !currentUser) {
     return (
-      <div className="min-h-screen bg-[#080D11] flex flex-col items-center justify-center p-4">
-        <div className="w-10 h-10 border-2 border-[#2dd4bf] border-t-transparent rounded-full animate-spin mb-4" />
-        <div className="font-mono text-sm text-slate-200 font-semibold flex items-center">
+      <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center justify-center p-4">
+        <div className="w-8 h-8 border-2 border-[#2dd4bf] border-t-transparent rounded-full animate-spin mb-3" />
+        <div className="text-sm text-slate-200 font-medium flex items-center">
           <span>RESOLVE</span>
-          <span className="text-[#2dd4bf] ml-0.5">IQ</span>
-          <span className="text-slate-500 text-xs ml-2 font-normal">SRE Console</span>
+          <span className="text-[#2dd4bf] ml-0.5 font-bold">IQ</span>
         </div>
-        <div className="font-mono text-xs text-slate-500 mt-1">
-          Connecting to incident database and telemetry feeds...
+        <div className="text-xs text-slate-500 mt-1 font-mono">
+          Connecting to telemetry feeds...
         </div>
       </div>
     );
@@ -158,7 +160,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080D11] text-slate-100 font-sans flex flex-col antialiased selection:bg-teal-500/25 selection:text-teal-200">
+    <div className="min-h-screen bg-[#0B0F14] text-slate-100 font-sans flex flex-col antialiased selection:bg-teal-500/20 selection:text-teal-200">
       {/* Top Navigation */}
       <Navbar
         currentUser={currentUser}
@@ -170,6 +172,7 @@ export function App() {
         searchQuery={searchQuery}
         onSelectIncidentById={(id) => setSelectedIncidentId(id)}
         onOpenAuthGateway={() => setShowAuthGateway(true)}
+        onOpenTutorial={() => setShowTutorial(true)}
       />
 
       {/* Main App Container with Sidebar */}
@@ -182,6 +185,7 @@ export function App() {
             setSelectedIncidentId(null);
           }}
           stats={stats}
+          onOpenTutorial={() => setShowTutorial(true)}
         />
 
         {/* Center Workspace */}
@@ -197,6 +201,7 @@ export function App() {
               onSelectService={handleSelectService}
               onOpenAddEvidence={(incId) => setAddEvidenceIncidentId(incId)}
               onIncidentUpdated={loadInitialData}
+              initialTab={incidentTab}
             />
           ) : currentTab === 'dashboard' ? (
             <DashboardView
@@ -206,6 +211,7 @@ export function App() {
               onSelectIncident={handleSelectIncident}
               onOpenDeclareIncident={() => setIsDeclareOpen(true)}
               onSelectService={handleSelectService}
+              onOpenTutorial={() => setShowTutorial(true)}
             />
           ) : currentTab === 'incidents' ? (
             <IncidentsListView
@@ -267,6 +273,28 @@ export function App() {
         isOpen={isAddServiceOpen}
         onClose={() => setIsAddServiceOpen(false)}
         onServiceCreated={loadInitialData}
+      />
+
+      {/* 4. Interactive Guided Tour Modal */}
+      <InteractiveTutorial
+        isOpen={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        onNavigateTab={(tab) => {
+          setCurrentTab(tab);
+          setSelectedIncidentId(null);
+        }}
+        onOpenDeclareIncident={() => {
+          setShowTutorial(false);
+          setIsDeclareOpen(true);
+        }}
+        onOpenDemoIncident={(tab = 'investigation') => {
+          const primaryInc = incidents.find((i) => i.incidentNumber === 'INC-2026-0842') || incidents[0];
+          if (primaryInc) {
+            setIncidentTab(tab);
+            setSelectedIncidentId(primaryInc.id);
+          }
+        }}
+        onSwitchUser={handleSwitchUser}
       />
     </div>
   );

@@ -2,39 +2,41 @@
 
 :root {
   color-scheme: dark;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.011em;
 }
 
 body {
-  background-color: #080D11;
-  color: #f1f5f9;
+  background-color: #0B0F14;
+  color: #e2e8f0;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background-color: rgba(45, 212, 191, 0.25);
-  color: #5eead4;
+  background-color: rgba(45, 212, 191, 0.2);
+  color: #2dd4bf;
 }
 
 code, pre, .font-mono {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* Sleek dark obsidian-teal scrollbar */
+/* Minimal subtle scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #080D11;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #182631;
-  border-radius: 3px;
+  background: #1e293b;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #233746;
+  background: #334155;
 }

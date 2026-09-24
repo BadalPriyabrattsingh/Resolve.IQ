@@ -29,6 +29,7 @@ import {
   Bar,
   Cell,
 } from 'recharts';
+import { Compass } from 'lucide-react';
 import { DashboardStats, Incident, Service } from '../types';
 import { SeverityBadge } from './SeverityBadge';
 import { StatusBadge } from './StatusBadge';
@@ -40,6 +41,7 @@ interface DashboardViewProps {
   onSelectIncident: (incidentId: string) => void;
   onOpenDeclareIncident: () => void;
   onSelectService: (serviceId: string) => void;
+  onOpenTutorial?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -49,6 +51,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectIncident,
   onOpenDeclareIncident,
   onSelectService,
+  onOpenTutorial,
 }) => {
   // Filters & Search
   const [filterSeverity, setFilterSeverity] = useState<string>('ALL');
@@ -154,29 +157,37 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="space-y-6 pb-16">
       {/* Top Header & Declare Action */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#182631]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#1E2631]">
         <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white font-mono">
-              Operations Command Center
-            </h1>
-            <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-teal-500/10 text-[#2dd4bf] border border-teal-500/30 font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf] animate-pulse" />
-              LIVE TELEMETRY
+          <h1 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+            <span>Operations Center</span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.2 rounded bg-teal-500/10 text-[#2dd4bf] border border-teal-500/20 font-medium">
+              Live
             </span>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Real-time incident response, critical path telemetry, MTTR/MTTA tracking, and AI-assisted investigation telemetry.
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            System health, active incidents, and automated telemetry.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          {onOpenTutorial && (
+            <button
+              id="btn-tutorial-dash-header"
+              onClick={onOpenTutorial}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#111720] hover:bg-[#16202B] text-slate-300 hover:text-white text-xs font-medium border border-[#1E2631] transition-colors cursor-pointer"
+            >
+              <Compass className="w-3.5 h-3.5 text-[#2dd4bf]" />
+              <span>Tour</span>
+            </button>
+          )}
+
           <button
             id="btn-declare-incident-dash"
             onClick={onOpenDeclareIncident}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-[#e07a5f] hover:bg-[#ea580c] text-white text-xs font-semibold shadow-lg shadow-orange-950/40 border border-[#e07a5f] transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-[#e07a5f] hover:bg-[#d66a4f] text-white text-xs font-medium shadow-sm transition-colors cursor-pointer"
           >
-            <AlertTriangle className="w-4 h-4" />
+            <AlertTriangle className="w-3.5 h-3.5" />
             <span>Declare Incident</span>
           </button>
         </div>
@@ -187,27 +198,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div
           id="active-sev1-callout"
           onClick={() => onSelectIncident(activeSev1.id)}
-          className="relative overflow-hidden rounded-xl border border-[#e07a5f]/50 bg-gradient-to-r from-[#261311] via-[#1a1417] to-[#0D151C] p-4 md:p-5 shadow-lg shadow-black/40 cursor-pointer hover:border-[#e07a5f] transition-all group"
+          className="rounded-lg border border-[#e07a5f]/40 bg-[#171415] hover:bg-[#1c1718] p-4 transition-colors cursor-pointer group"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#e07a5f]/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-lg bg-[#e07a5f]/20 border border-[#e07a5f]/40 flex items-center justify-center shrink-0 mt-0.5">
-                <Flame className="w-5 h-5 text-[#e07a5f] animate-pulse" />
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-md bg-[#e07a5f]/15 flex items-center justify-center shrink-0 mt-0.5">
+                <Flame className="w-4 h-4 text-[#e07a5f]" />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <SeverityBadge severity={activeSev1.severity} size="sm" />
                   <StatusBadge status={activeSev1.status} size="sm" />
                   <span className="text-xs font-mono text-slate-400">{activeSev1.incidentNumber}</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#121D26] text-slate-300 border border-[#1F2E3A]">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#111720] text-slate-400 border border-[#1E2631]">
                     {activeSev1.serviceName}
                   </span>
                 </div>
-                <h3 className="text-base font-bold text-white group-hover:text-[#fca5a5] transition-colors">
+                <h3 className="text-sm font-semibold text-slate-100 group-hover:text-white transition-colors">
                   {activeSev1.title}
                 </h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-3xl line-clamp-1">
+                <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
                   {activeSev1.impactSummary || activeSev1.description}
                 </p>
               </div>
@@ -215,11 +225,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
               <div className="text-right hidden sm:block">
-                <div className="text-[10px] font-mono uppercase text-slate-500">Incident Commander</div>
+                <div className="text-[10px] font-mono text-slate-500">Commander</div>
                 <div className="text-xs text-slate-300 font-medium">{activeSev1.incidentManager || 'Sarah Chen'}</div>
               </div>
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-[#e07a5f]/20 border border-[#e07a5f]/40 text-[#fca5a5] text-xs font-mono font-semibold group-hover:bg-[#e07a5f]/30 transition-colors">
-                Enter War Room <ArrowUpRight className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#e07a5f]/15 text-[#fca5a5] text-xs font-medium group-hover:bg-[#e07a5f]/25 transition-colors">
+                War Room <ArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
@@ -227,78 +237,78 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       )}
 
       {/* 6 Key Operational KPI Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
         {/* Open Incidents */}
-        <div className="p-3.5 rounded-xl bg-[#0D151C] border border-[#1A2833] hover:border-slate-700 transition-colors">
+        <div className="p-3 rounded-lg bg-[#111720] border border-[#1E2631] hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span className="font-mono text-[11px] font-semibold text-[#2dd4bf]">ACTIVE INCIDENTS</span>
+            <span className="text-[11px] font-medium text-slate-300">Active</span>
             <AlertTriangle className="w-3.5 h-3.5 text-[#2dd4bf]" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white">
+          <div className="text-xl font-semibold font-mono text-slate-100">
             {stats.openIncidentsCount}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">In triage / mitigation</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">In mitigation</div>
         </div>
 
         {/* Active SEV-1 */}
-        <div className="p-3.5 rounded-xl bg-[#0D151C] border border-[#e07a5f]/40 hover:border-[#e07a5f] transition-colors">
+        <div className="p-3 rounded-lg bg-[#111720] border border-[#1E2631] hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span className="font-mono text-[11px] font-semibold text-[#e07a5f]">ACTIVE SEV-1</span>
-            <Flame className="w-3.5 h-3.5 text-[#e07a5f] animate-pulse" />
+            <span className="text-[11px] font-medium text-[#e07a5f]">SEV-1</span>
+            <Flame className="w-3.5 h-3.5 text-[#e07a5f]" />
           </div>
-          <div className="text-2xl font-bold font-mono text-[#e07a5f]">
+          <div className="text-xl font-semibold font-mono text-[#e07a5f]">
             {stats.sev1Count}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Critical outage path</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">Critical outages</div>
         </div>
 
         {/* Active SEV-2 */}
-        <div className="p-3.5 rounded-xl bg-[#0D151C] border border-orange-950/60 hover:border-orange-500/40 transition-colors">
+        <div className="p-3 rounded-lg bg-[#111720] border border-[#1E2631] hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span className="font-mono text-[11px] font-semibold text-orange-400">ACTIVE SEV-2</span>
-            <Activity className="w-3.5 h-3.5 text-orange-400" />
+            <span className="text-[11px] font-medium text-amber-400">SEV-2</span>
+            <Activity className="w-3.5 h-3.5 text-amber-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-orange-400">
+          <div className="text-xl font-semibold font-mono text-amber-400">
             {stats.sev2Count}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Major degradation</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">Degraded services</div>
         </div>
 
         {/* Mean Time to Acknowledge (MTTA) */}
-        <div className="p-3.5 rounded-xl bg-[#0D151C] border border-[#1A2833] hover:border-slate-700 transition-colors">
+        <div className="p-3 rounded-lg bg-[#111720] border border-[#1E2631] hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span className="font-mono text-[11px] font-semibold text-cyan-400">MTTA</span>
-            <Clock className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-[11px] font-medium text-slate-300">MTTA</span>
+            <Clock className="w-3.5 h-3.5 text-slate-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-cyan-300">
+          <div className="text-xl font-semibold font-mono text-slate-200">
             {stats.avgAcknowledgeTimeMinutes}m
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Target: &lt; 5.0m SLA</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">Target: &lt; 5m</div>
         </div>
 
         {/* Mean Time to Resolve (MTTR) */}
-        <div className="p-3.5 rounded-xl bg-[#0D151C] border border-[#1A2833] hover:border-slate-700 transition-colors">
+        <div className="p-3 rounded-lg bg-[#111720] border border-[#1E2631] hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span className="font-mono text-[11px] font-semibold text-[#2dd4bf]">MTTR</span>
+            <span className="text-[11px] font-medium text-slate-300">MTTR</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-[#2dd4bf]" />
           </div>
-          <div className="text-2xl font-bold font-mono text-[#2dd4bf]">
+          <div className="text-xl font-semibold font-mono text-[#2dd4bf]">
             {stats.avgResolutionTimeMinutes}m
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">Target: &lt; 60m SLA</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">Target: &lt; 60m</div>
         </div>
 
         {/* Active AI Investigations */}
-        <div className="p-3.5 rounded-xl bg-[#0D151C] border border-teal-900/40 hover:border-teal-500/40 transition-colors">
+        <div className="p-3 rounded-lg bg-[#111720] border border-[#1E2631] hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span className="font-mono text-[11px] font-semibold text-teal-300">AI INVESTIGATIONS</span>
+            <span className="text-[11px] font-medium text-slate-300">AI Analyses</span>
             <Sparkles className="w-3.5 h-3.5 text-[#2dd4bf]" />
           </div>
-          <div className="text-2xl font-bold font-mono text-teal-300">
+          <div className="text-xl font-semibold font-mono text-[#2dd4bf]">
             {stats.activeInvestigationsCount}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono mt-1">
-            {stats.activeHypothesesCount || 3} hypotheses active
+          <div className="text-[10px] text-slate-500 mt-0.5">
+            {stats.activeHypothesesCount || 3} hypotheses
           </div>
         </div>
       </div>

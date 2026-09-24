@@ -9,6 +9,7 @@ import {
   Info,
   LogOut,
   UserCheck,
+  Compass,
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 
@@ -22,6 +23,7 @@ interface NavbarProps {
   searchQuery: string;
   onSelectIncidentById?: (id: string) => void;
   onOpenAuthGateway?: () => void;
+  onOpenTutorial?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -33,6 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSearchChange,
   searchQuery,
   onOpenAuthGateway,
+  onOpenTutorial,
 }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showRbacModal, setShowRbacModal] = useState(false);
@@ -65,64 +68,77 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header
       id="resolveiq-navbar"
-      className="sticky top-0 z-30 h-16 bg-[#090F14]/95 backdrop-blur border-b border-[#16232D] px-4 md:px-6 flex items-center justify-between gap-4"
+      className="sticky top-0 z-30 h-14 bg-[#0D1117]/95 backdrop-blur-md border-b border-[#1E2631] px-4 md:px-6 flex items-center justify-between gap-4"
     >
       {/* Left: Brand & Status */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center shadow-lg shadow-teal-900/30">
-            <Activity className="w-4 h-4 text-[#080d11] stroke-[2.5]" />
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-md bg-[#2dd4bf] flex items-center justify-center">
+            <Activity className="w-4 h-4 text-[#0B0F14] stroke-[2.5]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-white tracking-tight text-base flex items-center">
+              <span className="font-semibold text-slate-100 tracking-tight text-sm flex items-center">
                 <span>RESOLVE</span>
-                <span className="text-[#2dd4bf] ml-0.5">IQ</span>
+                <span className="text-[#2dd4bf] ml-0.5 font-bold">IQ</span>
               </span>
-              <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#101C25] text-teal-300 border border-teal-500/30 font-semibold">
-                SRE Console
+              <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-[#161F2A] text-slate-400 border border-[#232F3E]">
+                Ops
               </span>
             </div>
           </div>
         </div>
 
         {/* Live operational pulse */}
-        <div className="hidden lg:flex items-center gap-2 pl-4 ml-4 border-l border-[#182631] text-xs text-slate-400">
-          <span className="relative flex h-2 w-2">
+        <div className="hidden lg:flex items-center gap-2 pl-3 ml-2 border-l border-[#1E2631] text-xs text-slate-400">
+          <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2dd4bf] opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2dd4bf]"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#2dd4bf]"></span>
           </span>
-          <span className="font-mono text-[11px] text-[#2dd4bf] font-medium">CLUSTER TELEMETRY LIVE</span>
+          <span className="font-mono text-[11px] text-slate-400">Cluster Live</span>
         </div>
       </div>
 
       {/* Center: Global Search Bar */}
-      <div className="flex-1 max-w-md hidden sm:block">
+      <div className="flex-1 max-w-sm hidden sm:block">
         <div className="relative">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             id="global-incident-search"
             type="text"
-            placeholder="Search INC-2026-..., service, keyword..."
+            placeholder="Search incidents, services, tags..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs bg-[#070D12] border border-[#1A2833] rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#2dd4bf] focus:ring-1 focus:ring-[#2dd4bf]/40 font-mono"
+            className="w-full pl-8 pr-3 py-1 text-xs bg-[#111720] border border-[#1E2631] rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#2dd4bf]/60 transition-colors font-mono"
           />
         </div>
       </div>
 
       {/* Right: Actions & User Switcher */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2">
+        {/* Interactive Guided Tour */}
+        {onOpenTutorial && (
+          <button
+            id="btn-nav-tutorial"
+            onClick={onOpenTutorial}
+            title="Start interactive app tour & guide"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-[#232F3E] bg-[#111720] hover:bg-[#16202B] text-slate-300 hover:text-white transition-colors cursor-pointer"
+          >
+            <Compass className="w-3.5 h-3.5 text-[#2dd4bf]" />
+            <span className="hidden sm:inline">Guide</span>
+          </button>
+        )}
+
         {/* Auth Gateway Button */}
         {onOpenAuthGateway && (
           <button
             id="btn-nav-auth-gate"
             onClick={onOpenAuthGateway}
             title="Open Sign In / Auth Gateway view"
-            className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono rounded border border-[#1E2E3C] bg-[#0E171F] hover:bg-[#13222D] text-slate-300 hover:text-[#2dd4bf] transition-colors"
+            className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md border border-[#232F3E] bg-[#111720] hover:bg-[#16202B] text-slate-400 hover:text-slate-200 transition-colors"
           >
-            <LogOut className="w-3.5 h-3.5 text-[#2dd4bf]" />
-            <span>Sign In View</span>
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign In</span>
           </button>
         )}
 
@@ -132,10 +148,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={handleReset}
           disabled={isResetting}
           title="Reset back to initial demo state"
-          className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono rounded border border-[#1E2E3C] bg-[#0E171F] hover:bg-[#13222D] text-slate-400 hover:text-slate-200 transition-colors"
+          className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md border border-[#232F3E] bg-[#111720] hover:bg-[#16202B] text-slate-400 hover:text-slate-200 transition-colors"
         >
-          <RotateCcw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin' : ''}`} />
-          <span>Reset Demo</span>
+          <RotateCcw className={`w-3 h-3 ${isResetting ? 'animate-spin' : ''}`} />
+          <span>Reset</span>
         </button>
 
         {/* Declare Incident Button */}
@@ -143,10 +159,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           id="btn-declare-incident-navbar"
           onClick={onOpenDeclareIncident}
           disabled={currentUser.role === 'VIEWER'}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded shadow-sm border transition-all ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md border transition-all ${
             currentUser.role === 'VIEWER'
-              ? 'bg-[#0E171F] text-slate-500 border-[#182631] cursor-not-allowed'
-              : 'bg-[#e07a5f] hover:bg-[#ea580c] text-white border-[#e07a5f] shadow-lg shadow-orange-950/40 cursor-pointer'
+              ? 'bg-[#111720] text-slate-600 border-[#1E2631] cursor-not-allowed'
+              : 'bg-[#e07a5f] hover:bg-[#d66a4f] text-white border-[#e07a5f] shadow-sm cursor-pointer'
           }`}
           title={currentUser.role === 'VIEWER' ? 'Viewers cannot declare incidents' : 'Declare New Incident'}
         >

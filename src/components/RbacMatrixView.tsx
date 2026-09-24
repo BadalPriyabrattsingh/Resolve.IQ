@@ -28,22 +28,22 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="pb-3 border-b border-[#1A2833]">
-        <h1 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-[#2dd4bf]" />
-          <span>Role-Based Access Control (RBAC) System</span>
+      <div className="pb-4 border-b border-[#1E2631]">
+        <h1 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+          <Shield className="w-4 h-4 text-[#2dd4bf]" />
+          <span>Access Control & Team Personas</span>
         </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Enforced server-side permissions across all API endpoints with client-side capability synchronization.
+        <p className="text-xs text-slate-400 mt-0.5">
+          Role-based permissions governing incident triage, service administration, and evidence management.
         </p>
       </div>
 
       {/* Active User Persona Cards */}
       <div>
-        <div className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 mb-3">
-          Available Personas (Click to Switch Identity)
+        <div className="text-xs font-mono uppercase tracking-wider text-slate-500 mb-2.5">
+          Switch Active Persona
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {allUsers.map((u) => {
             const isCurrent = u.id === currentUser.id;
 
@@ -51,14 +51,14 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
               <div
                 key={u.id}
                 onClick={() => onSwitchUser(u.id)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                className={`p-3.5 rounded-lg border transition-colors cursor-pointer ${
                   isCurrent
-                    ? 'bg-[#101C25] border-teal-500/60 ring-1 ring-teal-500/30'
-                    : 'bg-[#0D151C] border-[#1A2833] hover:border-teal-500/40'
+                    ? 'bg-[#16202B] border-[#2dd4bf]/40'
+                    : 'bg-[#111720] border-[#1E2631] hover:border-slate-700'
                 }`}
               >
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-[#070D12] border border-[#1A2833] flex items-center justify-center text-sm font-mono font-bold text-slate-200 overflow-hidden">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-[#1A232F] border border-[#232F3E] flex items-center justify-center text-xs font-mono font-bold text-slate-200 overflow-hidden">
                     {u.avatarUrl ? (
                       <img src={u.avatarUrl} alt={u.name} className="w-full h-full object-cover" />
                     ) : (
@@ -67,32 +67,32 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
                   </div>
 
                   <span
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded border font-semibold ${
+                    className={`text-[10px] font-mono px-2 py-0.2 rounded border font-semibold ${
                       u.role === 'ADMIN'
-                        ? 'bg-[#e07a5f]/20 text-[#fca5a5] border-[#e07a5f]/40'
+                        ? 'bg-[#e07a5f]/15 text-[#fca5a5] border-[#e07a5f]/30'
                         : u.role === 'INCIDENT_MANAGER'
-                        ? 'bg-teal-500/20 text-[#2dd4bf] border-teal-500/40'
+                        ? 'bg-teal-500/15 text-[#2dd4bf] border-teal-500/30'
                         : u.role === 'ENGINEER'
-                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                        : 'bg-slate-800/60 text-slate-300 border-slate-700'
+                        ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+                        : 'bg-[#16202B] text-slate-400 border-[#232F3E]'
                     }`}
                   >
                     {u.role}
                   </span>
                 </div>
 
-                <div className="font-bold text-sm text-slate-100">{u.name}</div>
-                <div className="text-[11px] text-slate-400 font-mono mt-0.5">{u.title}</div>
-                <div className="text-[10px] text-slate-500 font-mono mt-1">{u.email}</div>
+                <div className="font-medium text-sm text-slate-100">{u.name}</div>
+                <div className="text-[11px] text-slate-400 font-mono">{u.title}</div>
+                <div className="text-[10px] text-slate-500 font-mono mt-0.5">{u.email}</div>
 
-                <div className="mt-4 pt-3 border-t border-[#182631] flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-slate-500">
+                <div className="mt-3 pt-2.5 border-t border-[#1E2631] flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-slate-500">
                     {isCurrent ? (
-                      <span className="text-[#2dd4bf] font-bold flex items-center gap-1">
-                        <Check className="w-3 h-3" /> ACTIVE PERSONA
+                      <span className="text-[#2dd4bf] font-medium flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Active persona
                       </span>
                     ) : (
-                      'Switch to this role'
+                      'Select to switch'
                     )}
                   </span>
                 </div>
@@ -103,48 +103,48 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
       </div>
 
       {/* Permissions Matrix Table */}
-      <div className="p-4 rounded-xl bg-[#0D151C] border border-[#1A2833]">
-        <div className="mb-4">
-          <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-slate-200">
-            Authorization & Privilege Breakdown
+      <div className="p-4 rounded-lg bg-[#111720] border border-[#1E2631]">
+        <div className="mb-3">
+          <h3 className="text-xs font-mono uppercase tracking-wider text-slate-300">
+            Permission Matrix
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
-            Real-time evaluated permission checks configured in <code className="text-[#2dd4bf]">src/types.ts</code> and guarded in <code className="text-[#2dd4bf]">server.ts</code>.
+            Real-time permission capabilities checked on user actions.
           </p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono text-slate-300">
-            <thead className="bg-[#070D12] text-slate-400 uppercase text-[10px] border-b border-[#1A2833]">
+            <thead className="bg-[#0B0F14] text-slate-400 uppercase text-[10px] border-b border-[#1E2631]">
               <tr>
-                <th className="py-3 px-4">Operation / Permission</th>
+                <th className="py-2.5 px-3">Capability</th>
                 {roles.map((r) => (
-                  <th key={r} className="py-3 px-4 text-center">
-                    <span className={r === currentUser.role ? 'text-[#2dd4bf] font-bold' : ''}>
-                      {r} {r === currentUser.role && '(YOU)'}
+                  <th key={r} className="py-2.5 px-3 text-center">
+                    <span className={r === currentUser.role ? 'text-[#2dd4bf] font-semibold' : ''}>
+                      {r} {r === currentUser.role && '(You)'}
                     </span>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1A2833] font-sans">
+            <tbody className="divide-y divide-[#1E2631] font-sans">
               {permissionsList.map((p) => (
-                <tr key={p.key} className="hover:bg-[#101C25]/40 transition-colors">
-                  <td className="py-3 px-4">
-                    <div className="font-semibold text-slate-200 font-mono text-xs">{p.label}</div>
-                    <div className="text-[11px] text-slate-500 font-mono mt-0.5">{p.desc}</div>
+                <tr key={p.key} className="hover:bg-[#16202B]/40 transition-colors">
+                  <td className="py-2.5 px-3">
+                    <div className="font-medium text-slate-200 text-xs">{p.label}</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">{p.desc}</div>
                   </td>
                   {roles.map((role) => {
                     const allowed = (ROLE_PERMISSIONS[role] as any)[p.key];
                     return (
-                      <td key={role} className="py-3 px-4 text-center">
+                      <td key={role} className="py-2.5 px-3 text-center">
                         {allowed ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-teal-500/15 text-[#2dd4bf] border border-teal-500/30">
-                            <Check className="w-3.5 h-3.5" />
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-teal-500/10 text-[#2dd4bf]">
+                            <Check className="w-3 h-3" />
                           </span>
                         ) : (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#070D12] text-slate-600 border border-[#1A2833]">
-                            <Cross className="w-3.5 h-3.5" />
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#16202B] text-slate-600">
+                            <Cross className="w-3 h-3" />
                           </span>
                         )}
                       </td>

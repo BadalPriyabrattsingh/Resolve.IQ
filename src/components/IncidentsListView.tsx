@@ -73,91 +73,91 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
   return (
     <div className="space-y-5 pb-12">
       {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#1A2833]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#1E2631]">
         <div>
-          <h1 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
-            <span>Incident Registry</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-[#101C25] text-[#2dd4bf] font-mono border border-teal-500/30">
+          <h1 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+            <span>Incident Directory</span>
+            <span className="text-xs px-2 py-0.2 rounded bg-[#111720] text-slate-400 font-mono border border-[#1E2631]">
               {filtered.length} of {incidents.length}
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Complete historical and active production incident records with audit telemetry.
+          <p className="text-xs text-slate-400 mt-0.5">
+            Historical and active production incident records with audit telemetry.
           </p>
         </div>
 
         <button
           onClick={onOpenDeclareIncident}
           disabled={currentUser.role === 'VIEWER'}
-          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-bold transition-all ${
+          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all ${
             currentUser.role === 'VIEWER'
-              ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-              : 'bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] shadow-md shadow-teal-950/40 cursor-pointer'
+              ? 'bg-[#111720] text-slate-600 border border-[#1E2631] cursor-not-allowed'
+              : 'bg-[#e07a5f] hover:bg-[#d66a4f] text-white shadow-sm cursor-pointer'
           }`}
         >
-          <AlertTriangle className="w-4 h-4" />
+          <AlertTriangle className="w-3.5 h-3.5" />
           <span>Declare Incident</span>
         </button>
       </div>
 
       {/* Filter Bar */}
-      <div className="p-3.5 rounded-xl bg-[#0D151C] border border-[#1A2833] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+      <div className="p-3 rounded-lg bg-[#111720] border border-[#1E2631] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by ID, title, summary, engineer..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs bg-[#070D12] border border-[#1A2833] rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#2dd4bf] font-mono"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#0B0F14] border border-[#1E2631] rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#2dd4bf]/60 font-mono"
           />
         </div>
 
         {/* Dropdown Filters */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Severity */}
-          <div className="flex items-center gap-1 text-xs">
-            <span className="text-[11px] font-mono text-slate-500">SEV:</span>
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-[11px] text-slate-500">Severity:</span>
             <select
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="bg-[#070D12] border border-[#1A2833] rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
+              className="bg-[#0B0F14] border border-[#1E2631] rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
             >
-              <option value="ALL">All Severities</option>
-              <option value="SEV-1">SEV-1 (Critical)</option>
-              <option value="SEV-2">SEV-2 (High)</option>
-              <option value="SEV-3">SEV-3 (Medium)</option>
-              <option value="SEV-4">SEV-4 (Low)</option>
+              <option value="ALL">All</option>
+              <option value="SEV-1">SEV-1</option>
+              <option value="SEV-2">SEV-2</option>
+              <option value="SEV-3">SEV-3</option>
+              <option value="SEV-4">SEV-4</option>
             </select>
           </div>
 
           {/* Status */}
-          <div className="flex items-center gap-1 text-xs">
-            <span className="text-[11px] font-mono text-slate-500">STATUS:</span>
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-[11px] text-slate-500">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#070D12] border border-[#1A2833] rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
+              className="bg-[#0B0F14] border border-[#1E2631] rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
             >
-              <option value="ALL">All States</option>
-              <option value="ACTIVE">Active (Unresolved)</option>
-              <option value="DETECTED">DETECTED</option>
-              <option value="TRIAGED">TRIAGED</option>
-              <option value="INVESTIGATING">INVESTIGATING</option>
-              <option value="MITIGATING">MITIGATING</option>
-              <option value="RESOLVED">RESOLVED</option>
-              <option value="CLOSED">CLOSED</option>
+              <option value="ALL">All</option>
+              <option value="ACTIVE">Active</option>
+              <option value="DETECTED">Detected</option>
+              <option value="TRIAGED">Triaged</option>
+              <option value="INVESTIGATING">Investigating</option>
+              <option value="MITIGATING">Mitigating</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
             </select>
           </div>
 
           {/* Service */}
-          <div className="flex items-center gap-1 text-xs">
-            <span className="text-[11px] font-mono text-slate-500">SERVICE:</span>
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-[11px] text-slate-500">Service:</span>
             <select
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value)}
-              className="bg-[#070D12] border border-[#1A2833] rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none focus:border-[#2dd4bf] max-w-[160px] truncate"
+              className="bg-[#0B0F14] border border-[#1E2631] rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-[#2dd4bf] max-w-[150px] truncate"
             >
               <option value="ALL">All Services</option>
               {services.map((srv) => (

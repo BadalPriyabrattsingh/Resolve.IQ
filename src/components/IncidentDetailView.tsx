@@ -63,6 +63,7 @@ interface IncidentDetailViewProps {
   onSelectService: (serviceId: string) => void;
   onOpenAddEvidence: (incidentId: string) => void;
   onIncidentUpdated: () => void;
+  initialTab?: WorkspaceTab;
 }
 
 type WorkspaceTab = 'investigation' | 'actions' | 'timeline' | 'evidence';
@@ -76,6 +77,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
   onSelectService,
   onOpenAddEvidence,
   onIncidentUpdated,
+  initialTab = 'investigation',
 }) => {
   const { showToast } = useToast();
 
@@ -88,7 +90,13 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
   const [investigation, setInvestigation] = useState<Investigation | null>(null);
 
   // Central Workspace Tab
-  const [centerTab, setCenterTab] = useState<WorkspaceTab>('investigation');
+  const [centerTab, setCenterTab] = useState<WorkspaceTab>(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setCenterTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Search & Filtering for Evidence
   const [evidenceFilter, setEvidenceFilter] = useState<string>('ALL');

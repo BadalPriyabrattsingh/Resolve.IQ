@@ -107,26 +107,26 @@ export const GlobalTimelineView: React.FC<GlobalTimelineViewProps> = ({
   return (
     <div className="space-y-5 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#1A2833]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#1E2631]">
         <div>
-          <h1 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[#2dd4bf]" />
-            <span>Global Operations Timeline Feed</span>
+          <h1 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#2dd4bf]" />
+            <span>Audit & Timeline Feed</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Real-time chronological telemetry stream of state transitions, evidence attachments, and mitigations.
+          <p className="text-xs text-slate-400 mt-0.5">
+            Chronological audit log of state transitions, comments, and mitigations.
           </p>
         </div>
 
         {/* Filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-slate-500">Filter Event:</span>
+        <div className="flex items-center gap-1.5 text-xs">
+          <span className="text-[11px] text-slate-500">Event:</span>
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="bg-[#070D12] border border-[#1A2833] rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
+            className="bg-[#0B0F14] border border-[#1E2631] rounded px-2.5 py-1 text-xs text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
           >
-            <option value="ALL">All Event Types</option>
+            <option value="ALL">All Events</option>
             <option value="CREATED">Created</option>
             <option value="STATUS_CHANGE">Status Changes</option>
             <option value="SEVERITY_CHANGE">Severity Changes</option>
@@ -139,12 +139,12 @@ export const GlobalTimelineView: React.FC<GlobalTimelineViewProps> = ({
 
       {loading ? (
         <div className="p-12 text-center text-slate-400 font-mono text-xs">
-          <div className="w-6 h-6 border-2 border-[#2dd4bf] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          Aggregating cross-service audit trail...
+          <div className="w-5 h-5 border-2 border-[#2dd4bf] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          Loading audit events...
         </div>
       ) : (
-        <div className="p-5 rounded-xl bg-[#0D151C] border border-[#1A2833]">
-          <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#1A2833]">
+        <div className="p-4 rounded-lg bg-[#111720] border border-[#1E2631]">
+          <div className="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-[#1E2631]">
             {filteredEvents.map((event) => {
               const Icon = getTimelineIcon(event.eventType);
 
