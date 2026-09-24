@@ -55,12 +55,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const isWarning = toast.type === 'warning';
 
           const borderBgClass = isSuccess
-            ? 'bg-slate-900 border-emerald-500/50 shadow-emerald-950/40 text-emerald-300'
+            ? 'bg-[#0D151C] border-teal-500/50 shadow-teal-950/40 text-[#2dd4bf]'
             : isError
-            ? 'bg-slate-900 border-red-500/50 shadow-red-950/40 text-red-300'
+            ? 'bg-[#0D151C] border-[#e07a5f]/50 shadow-black/40 text-[#fca5a5]'
             : isWarning
-            ? 'bg-slate-900 border-amber-500/50 shadow-amber-950/40 text-amber-300'
-            : 'bg-slate-900 border-blue-500/50 shadow-blue-950/40 text-blue-300';
+            ? 'bg-[#0D151C] border-amber-500/50 shadow-amber-950/40 text-amber-300'
+            : 'bg-[#0D151C] border-teal-500/50 shadow-teal-950/40 text-teal-300';
 
           return (
             <div
@@ -68,10 +68,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-lg border shadow-xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 ${borderBgClass}`}
             >
               <div className="shrink-0 mt-0.5">
-                {isSuccess && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                {isError && <XCircle className="w-4 h-4 text-red-400" />}
+                {isSuccess && <CheckCircle2 className="w-4 h-4 text-[#2dd4bf]" />}
+                {isError && <XCircle className="w-4 h-4 text-[#e07a5f]" />}
                 {isWarning && <AlertTriangle className="w-4 h-4 text-amber-400" />}
-                {toast.type === 'info' && <Info className="w-4 h-4 text-blue-400" />}
+                {toast.type === 'info' && <Info className="w-4 h-4 text-[#2dd4bf]" />}
               </div>
 
               <div className="flex-1 min-w-0">

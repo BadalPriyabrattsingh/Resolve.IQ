@@ -28,9 +28,9 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="pb-3 border-b border-slate-800/80">
+      <div className="pb-3 border-b border-[#1A2833]">
         <h1 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-red-400" />
+          <Shield className="w-5 h-5 text-[#2dd4bf]" />
           <span>Role-Based Access Control (RBAC) System</span>
         </h1>
         <p className="text-xs text-slate-400 mt-1">
@@ -53,12 +53,12 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
                 onClick={() => onSwitchUser(u.id)}
                 className={`p-4 rounded-xl border transition-all cursor-pointer ${
                   isCurrent
-                    ? 'bg-slate-850 border-red-500/60 ring-1 ring-red-500/30'
-                    : 'bg-slate-900/70 border-slate-800/80 hover:border-slate-700'
+                    ? 'bg-[#101C25] border-teal-500/60 ring-1 ring-teal-500/30'
+                    : 'bg-[#0D151C] border-[#1A2833] hover:border-teal-500/40'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-sm font-mono font-bold text-slate-200 overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-[#070D12] border border-[#1A2833] flex items-center justify-center text-sm font-mono font-bold text-slate-200 overflow-hidden">
                     {u.avatarUrl ? (
                       <img src={u.avatarUrl} alt={u.name} className="w-full h-full object-cover" />
                     ) : (
@@ -69,12 +69,12 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
                   <span
                     className={`text-[10px] font-mono px-2 py-0.5 rounded border font-semibold ${
                       u.role === 'ADMIN'
-                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                        ? 'bg-[#e07a5f]/20 text-[#fca5a5] border-[#e07a5f]/40'
                         : u.role === 'INCIDENT_MANAGER'
-                        ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                        ? 'bg-teal-500/20 text-[#2dd4bf] border-teal-500/40'
                         : u.role === 'ENGINEER'
-                        ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
-                        : 'bg-slate-700/40 text-slate-300 border-slate-600'
+                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                        : 'bg-slate-800/60 text-slate-300 border-slate-700'
                     }`}
                   >
                     {u.role}
@@ -85,10 +85,10 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
                 <div className="text-[11px] text-slate-400 font-mono mt-0.5">{u.title}</div>
                 <div className="text-[10px] text-slate-500 font-mono mt-1">{u.email}</div>
 
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <div className="mt-4 pt-3 border-t border-[#182631] flex items-center justify-between">
                   <span className="text-[11px] font-mono text-slate-500">
                     {isCurrent ? (
-                      <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      <span className="text-[#2dd4bf] font-bold flex items-center gap-1">
                         <Check className="w-3 h-3" /> ACTIVE PERSONA
                       </span>
                     ) : (
@@ -103,33 +103,33 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
       </div>
 
       {/* Permissions Matrix Table */}
-      <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80">
+      <div className="p-4 rounded-xl bg-[#0D151C] border border-[#1A2833]">
         <div className="mb-4">
           <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-slate-200">
             Authorization & Privilege Breakdown
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
-            Real-time evaluated permission checks configured in <code className="text-slate-300">src/types.ts</code> and guarded in <code className="text-slate-300">server.ts</code>.
+            Real-time evaluated permission checks configured in <code className="text-[#2dd4bf]">src/types.ts</code> and guarded in <code className="text-[#2dd4bf]">server.ts</code>.
           </p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+            <thead className="bg-[#070D12] text-slate-400 uppercase text-[10px] border-b border-[#1A2833]">
               <tr>
                 <th className="py-3 px-4">Operation / Permission</th>
                 {roles.map((r) => (
                   <th key={r} className="py-3 px-4 text-center">
-                    <span className={r === currentUser.role ? 'text-red-400 font-bold' : ''}>
+                    <span className={r === currentUser.role ? 'text-[#2dd4bf] font-bold' : ''}>
                       {r} {r === currentUser.role && '(YOU)'}
                     </span>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-sans">
+            <tbody className="divide-y divide-[#1A2833] font-sans">
               {permissionsList.map((p) => (
-                <tr key={p.key} className="hover:bg-slate-850/50 transition-colors">
+                <tr key={p.key} className="hover:bg-[#101C25]/40 transition-colors">
                   <td className="py-3 px-4">
                     <div className="font-semibold text-slate-200 font-mono text-xs">{p.label}</div>
                     <div className="text-[11px] text-slate-500 font-mono mt-0.5">{p.desc}</div>
@@ -139,11 +139,11 @@ export const RbacMatrixView: React.FC<RbacMatrixViewProps> = ({
                     return (
                       <td key={role} className="py-3 px-4 text-center">
                         {allowed ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-teal-500/15 text-[#2dd4bf] border border-teal-500/30">
                             <Check className="w-3.5 h-3.5" />
                           </span>
                         ) : (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-800 text-slate-600 border border-slate-800">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#070D12] text-slate-600 border border-[#1A2833]">
                             <Cross className="w-3.5 h-3.5" />
                           </span>
                         )}

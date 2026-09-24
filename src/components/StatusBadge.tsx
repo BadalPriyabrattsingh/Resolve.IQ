@@ -19,49 +19,49 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     switch (status) {
       case 'DETECTED':
         return {
-          bg: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
-          dot: 'bg-rose-500 animate-ping',
+          bg: 'bg-[#e07a5f]/15 text-[#fca5a5] border-[#e07a5f]/40',
+          dot: 'bg-[#e07a5f] animate-ping',
           icon: AlertCircle,
           label: 'DETECTED',
         };
       case 'TRIAGED':
         return {
-          bg: 'bg-purple-500/10 text-purple-300 border-purple-500/30',
-          dot: 'bg-purple-400',
+          bg: 'bg-teal-500/15 text-[#2dd4bf] border-teal-500/30',
+          dot: 'bg-teal-400',
           icon: Radio,
           label: 'TRIAGED',
         };
       case 'INVESTIGATING':
         return {
-          bg: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-          dot: 'bg-blue-500 animate-pulse',
+          bg: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
+          dot: 'bg-cyan-400 animate-pulse',
           icon: Search,
           label: 'INVESTIGATING',
         };
       case 'MITIGATING':
         return {
-          bg: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+          bg: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
           dot: 'bg-amber-400 animate-pulse',
           icon: Wrench,
           label: 'MITIGATING',
         };
       case 'RESOLVED':
         return {
-          bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-          dot: 'bg-emerald-400',
+          bg: 'bg-teal-500/20 text-[#2dd4bf] border-teal-500/40',
+          dot: 'bg-[#2dd4bf]',
           icon: CheckCircle2,
           label: 'RESOLVED',
         };
       case 'CLOSED':
         return {
-          bg: 'bg-slate-700/30 text-slate-400 border-slate-700/60',
+          bg: 'bg-[#0D151C] text-slate-400 border-[#1A2833]',
           dot: 'bg-slate-500',
           icon: Archive,
           label: 'CLOSED',
         };
       default:
         return {
-          bg: 'bg-slate-800 text-slate-300 border-slate-700',
+          bg: 'bg-[#0D151C] text-slate-300 border-[#1A2833]',
           dot: 'bg-slate-400',
           icon: AlertCircle,
           label: status,

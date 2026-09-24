@@ -201,8 +201,8 @@ export const AiInvestigationPanel: React.FC<AiInvestigationPanelProps> = ({
         );
       case 'AI_HYPOTHESIS':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center gap-1">
-            <Sparkles className="w-2.5 h-2.5 text-purple-400" />
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-teal-500/15 text-[#2dd4bf] border border-teal-500/30 flex items-center gap-1">
+            <Sparkles className="w-2.5 h-2.5 text-[#2dd4bf]" />
             AI HYPOTHESIS
           </span>
         );
@@ -236,23 +236,23 @@ export const AiInvestigationPanel: React.FC<AiInvestigationPanelProps> = ({
         );
       case 'UNDER_REVIEW':
         return (
-          <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/50 flex items-center gap-1.5">
-            <Activity className="w-3.5 h-3.5 text-blue-400" />
+          <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/50 flex items-center gap-1.5">
+            <Activity className="w-3.5 h-3.5 text-[#2dd4bf]" />
             UNDER REVIEW
           </span>
         );
       case 'REJECTED':
         return (
-          <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-red-500/15 text-red-400 border border-red-500/30 flex items-center gap-1.5 line-through">
-            <XCircle className="w-3.5 h-3.5 text-red-400" />
+          <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-[#e07a5f]/15 text-[#fca5a5] border border-[#e07a5f]/30 flex items-center gap-1.5 line-through">
+            <XCircle className="w-3.5 h-3.5 text-[#e07a5f]" />
             REJECTED
           </span>
         );
       case 'PROPOSED':
       default:
         return (
-          <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-purple-500/15 text-purple-300 border border-purple-500/40 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+          <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-teal-500/15 text-[#2dd4bf] border border-teal-500/40 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-[#2dd4bf]" />
             PROPOSED
           </span>
         );
@@ -262,9 +262,9 @@ export const AiInvestigationPanel: React.FC<AiInvestigationPanelProps> = ({
   // If no investigation exists yet
   if (!investigation) {
     return (
-      <div className="p-8 rounded-xl bg-slate-900/80 border border-purple-500/30 text-center space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-purple-950/60 border border-purple-500/40 flex items-center justify-center mx-auto">
-          <Sparkles className="w-6 h-6 text-purple-400" />
+      <div className="p-8 rounded-xl bg-[#0D151C] border border-teal-500/30 text-center space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/40 flex items-center justify-center mx-auto">
+          <Sparkles className="w-6 h-6 text-[#2dd4bf]" />
         </div>
         <h3 className="text-base font-bold font-mono text-slate-100">
           AI Incident Investigation
@@ -275,11 +275,11 @@ export const AiInvestigationPanel: React.FC<AiInvestigationPanelProps> = ({
         <button
           onClick={handleRunInvestigation}
           disabled={analyzing || currentUser.role === 'VIEWER'}
-          className="px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-mono text-xs font-semibold inline-flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer shadow-lg shadow-purple-950/50"
+          className="px-4 py-2.5 rounded-lg bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] font-mono text-xs font-bold inline-flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer shadow-lg shadow-teal-950/50"
         >
           {analyzing ? (
             <>
-              <RefreshCw className="w-4 h-4 animate-spin text-purple-200" />
+              <RefreshCw className="w-4 h-4 animate-spin text-[#080D11]" />
               <span>Analyzing Incident Evidence...</span>
             </>
           ) : (
@@ -304,18 +304,18 @@ export const AiInvestigationPanel: React.FC<AiInvestigationPanelProps> = ({
   return (
     <div id="ai-investigation-section" className="space-y-4">
       {/* Header bar */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-slate-900 via-slate-900/95 to-purple-950/30 border border-purple-500/30 shadow-md">
+      <div className="p-4 rounded-xl bg-[#0D151C] border border-[#1A2833] shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-600/25 border border-purple-500/50 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-purple-300" />
+            <div className="w-9 h-9 rounded-xl bg-teal-500/15 border border-teal-500/40 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-[#2dd4bf]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold font-mono text-slate-100">
                   AI Investigation Engine
                 </h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-teal-500/20 text-[#2dd4bf] border border-teal-500/40">
                   STATUS: {investigation.status}
                 </span>
                 {confirmedRootCause && (
@@ -402,27 +402,27 @@ export const AiInvestigationPanel: React.FC<AiInvestigationPanelProps> = ({
       )}
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-slate-800 pb-2">
+      <div className="flex items-center gap-1.5 border-b border-[#1A2833] pb-2 overflow-x-auto">
         <button
           id="subtab-hypotheses"
           onClick={() => setActiveSection('hypotheses')}
-          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
             activeSection === 'hypotheses'
-              ? 'bg-purple-950/60 text-purple-200 border border-purple-600/50 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              ? 'bg-[#101C25] text-[#2dd4bf] border border-teal-500/50 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-[#0D151C]'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+          <Sparkles className="w-3.5 h-3.5 text-[#2dd4bf]" />
           <span>Root-Cause Hypotheses ({investigation.hypotheses.length})</span>
         </button>
 
         <button
           id="subtab-findings"
           onClick={() => setActiveSection('findings')}
-          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
             activeSection === 'findings'
-              ? 'bg-purple-950/60 text-purple-200 border border-purple-600/50 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              ? 'bg-[#101C25] text-[#2dd4bf] border border-teal-500/50 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-[#0D151C]'
           }`}
         >
           <Activity className="w-3.5 h-3.5 text-sky-400" />
@@ -432,10 +432,10 @@ export const AiInvestigationPanel: React.FC<AiInvestigationPanelProps> = ({
         <button
           id="subtab-timeline"
           onClick={() => setActiveSection('timeline')}
-          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
             activeSection === 'timeline'
-              ? 'bg-purple-950/60 text-purple-200 border border-purple-600/50 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              ? 'bg-[#101C25] text-[#2dd4bf] border border-teal-500/50 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-[#0D151C]'
           }`}
         >
           <Clock className="w-3.5 h-3.5 text-amber-400" />
@@ -445,10 +445,10 @@ export const AiInvestigationPanel: React.FC<AiInvestigationPanelProps> = ({
         <button
           id="subtab-runbooks"
           onClick={() => setActiveSection('runbooks')}
-          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
             activeSection === 'runbooks'
-              ? 'bg-purple-950/60 text-purple-200 border border-purple-600/50 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              ? 'bg-[#101C25] text-[#2dd4bf] border border-teal-500/50 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-[#0D151C]'
           }`}
         >
           <Terminal className="w-3.5 h-3.5 text-emerald-400" />
@@ -458,13 +458,13 @@ export const AiInvestigationPanel: React.FC<AiInvestigationPanelProps> = ({
         <button
           id="subtab-chat"
           onClick={() => setActiveSection('chat')}
-          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 text-xs font-mono rounded-md font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
             activeSection === 'chat'
-              ? 'bg-purple-950/60 text-purple-200 border border-purple-600/50 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              ? 'bg-[#101C25] text-[#2dd4bf] border border-teal-500/50 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-[#0D151C]'
           }`}
         >
-          <MessageSquare className="w-3.5 h-3.5 text-purple-400" />
+          <MessageSquare className="w-3.5 h-3.5 text-[#2dd4bf]" />
           <span>AI Copilot Chat ({investigation.chatHistory?.length || 0})</span>
         </button>
       </div>

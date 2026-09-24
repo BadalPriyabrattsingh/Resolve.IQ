@@ -39,27 +39,27 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   const isWarning = variant === 'warning';
 
   const confirmBtnClass = isDanger
-    ? 'bg-red-600 hover:bg-red-500 text-white border-red-500 shadow-red-950/50'
+    ? 'bg-[#e07a5f] hover:bg-[#d46f55] text-[#080D11] font-bold border-[#e07a5f] shadow-lg shadow-coral-950/40'
     : isSuccess
-    ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-emerald-950/50'
+    ? 'bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] font-bold border-teal-400 shadow-lg shadow-teal-950/40'
     : isWarning
-    ? 'bg-amber-600 hover:bg-amber-500 text-white border-amber-500 shadow-amber-950/50'
-    : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500 shadow-blue-950/50';
+    ? 'bg-amber-500 hover:bg-amber-400 text-[#080D11] font-bold border-amber-400 shadow-lg shadow-amber-950/40'
+    : 'bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] font-bold border-teal-400 shadow-lg shadow-teal-950/40';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in">
-      <div className="relative w-full max-w-md rounded-xl bg-slate-900 border border-slate-800 shadow-2xl p-5 space-y-4">
+      <div className="relative w-full max-w-md rounded-xl bg-[#0D151C] border border-[#1A2833] shadow-2xl p-5 space-y-4">
         {/* Header */}
         <div className="flex items-start gap-3.5">
           <div
             className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${
               isDanger
-                ? 'bg-red-500/10 border-red-500/30 text-red-400'
+                ? 'bg-[#e07a5f]/15 border-[#e07a5f]/30 text-[#fca5a5]'
                 : isSuccess
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                ? 'bg-teal-500/15 border-teal-500/30 text-[#2dd4bf]'
                 : isWarning
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                : 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+                : 'bg-teal-500/15 border-teal-500/30 text-[#2dd4bf]'
             }`}
           >
             {isDanger && <AlertTriangle className="w-5 h-5" />}
@@ -76,7 +76,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="text-slate-500 hover:text-slate-300 transition-colors p-1"
+            className="text-slate-500 hover:text-slate-300 transition-colors p-1 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -92,18 +92,18 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
               onChange={(e) => onInputChange?.(e.target.value)}
               placeholder={inputPlaceholder}
               disabled={isLoading}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 placeholder-slate-500 font-mono focus:outline-none focus:border-slate-600 transition-colors"
+              className="w-full bg-[#070D12] border border-[#1A2833] rounded-lg p-2.5 text-xs text-slate-200 placeholder-slate-500 font-mono focus:outline-none focus:border-[#2dd4bf] transition-colors"
             />
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#1A2833]">
           <button
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="px-3.5 py-1.5 text-xs font-mono rounded-md bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
+            className="px-3.5 py-1.5 text-xs font-mono rounded-md bg-[#101C25] hover:bg-[#182631] text-slate-300 border border-[#1A2833] transition-colors disabled:opacity-50 cursor-pointer"
           >
             {cancelLabel}
           </button>
@@ -114,7 +114,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             className={`px-4 py-1.5 text-xs font-mono font-bold rounded-md border shadow transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer ${confirmBtnClass}`}
           >
             {isLoading && (
-              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
             )}
             <span>{confirmLabel}</span>
           </button>

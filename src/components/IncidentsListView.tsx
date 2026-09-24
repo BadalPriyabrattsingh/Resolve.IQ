@@ -73,11 +73,11 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
   return (
     <div className="space-y-5 pb-12">
       {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#1A2833]">
         <div>
           <h1 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
             <span>Incident Registry</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
+            <span className="text-xs px-2 py-0.5 rounded bg-[#101C25] text-[#2dd4bf] font-mono border border-teal-500/30">
               {filtered.length} of {incidents.length}
             </span>
           </h1>
@@ -89,10 +89,10 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
         <button
           onClick={onOpenDeclareIncident}
           disabled={currentUser.role === 'VIEWER'}
-          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-semibold shadow transition-all ${
+          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-bold transition-all ${
             currentUser.role === 'VIEWER'
               ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-              : 'bg-red-600 hover:bg-red-500 text-white shadow-red-950/40 cursor-pointer'
+              : 'bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] shadow-md shadow-teal-950/40 cursor-pointer'
           }`}
         >
           <AlertTriangle className="w-4 h-4" />
@@ -101,7 +101,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
       </div>
 
       {/* Filter Bar */}
-      <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800/80 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+      <div className="p-3.5 rounded-xl bg-[#0D151C] border border-[#1A2833] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -110,7 +110,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
             placeholder="Search by ID, title, summary, engineer..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-red-500/50 font-mono"
+            className="w-full pl-9 pr-4 py-1.5 text-xs bg-[#070D12] border border-[#1A2833] rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#2dd4bf] font-mono"
           />
         </div>
 
@@ -122,7 +122,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
             <select
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs font-mono text-slate-300 focus:outline-none"
+              className="bg-[#070D12] border border-[#1A2833] rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
             >
               <option value="ALL">All Severities</option>
               <option value="SEV-1">SEV-1 (Critical)</option>
@@ -138,7 +138,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs font-mono text-slate-300 focus:outline-none"
+              className="bg-[#070D12] border border-[#1A2833] rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
             >
               <option value="ALL">All States</option>
               <option value="ACTIVE">Active (Unresolved)</option>
@@ -157,7 +157,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
             <select
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs font-mono text-slate-300 focus:outline-none max-w-[160px] truncate"
+              className="bg-[#070D12] border border-[#1A2833] rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none focus:border-[#2dd4bf] max-w-[160px] truncate"
             >
               <option value="ALL">All Services</option>
               {services.map((srv) => (
@@ -176,7 +176,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                 setStatusFilter('ALL');
                 setServiceFilter('ALL');
               }}
-              className="text-[11px] font-mono text-red-400 hover:underline px-1.5 py-1"
+              className="text-[11px] font-mono text-[#2dd4bf] hover:underline px-1.5 py-1 cursor-pointer"
             >
               Clear
             </button>
@@ -185,10 +185,10 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
       </div>
 
       {/* Incidents Table */}
-      <div className="rounded-xl bg-slate-900/70 border border-slate-800/80 overflow-hidden shadow-xl">
+      <div className="rounded-xl bg-[#0D151C] border border-[#1A2833] overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 font-mono uppercase text-[10px] border-b border-slate-800 tracking-wider">
+            <thead className="bg-[#070D12] text-slate-400 font-mono uppercase text-[10px] border-b border-[#1A2833] tracking-wider">
               <tr>
                 <th className="py-3 px-4">Incident ID</th>
                 <th className="py-3 px-4">Title & Context</th>
@@ -201,7 +201,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                 <th className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-sans">
+            <tbody className="divide-y divide-[#1A2833] font-sans">
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-500 font-mono">
@@ -214,7 +214,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                         setStatusFilter('ALL');
                         setServiceFilter('ALL');
                       }}
-                      className="mt-2 text-xs text-red-400 hover:underline"
+                      className="mt-2 text-xs text-[#2dd4bf] hover:underline cursor-pointer"
                     >
                       Reset filters
                     </button>
@@ -229,15 +229,15 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                       key={incident.id}
                       id={`incident-item-${incident.id}`}
                       onClick={() => onSelectIncident(incident.id)}
-                      className={`group hover:bg-slate-850/70 transition-colors cursor-pointer ${
-                        isPrimaryDemo ? 'bg-red-950/20' : ''
+                      className={`group hover:bg-[#101C25]/70 transition-colors cursor-pointer ${
+                        isPrimaryDemo ? 'bg-teal-500/5' : ''
                       }`}
                     >
                       {/* ID */}
-                      <td className="py-3.5 px-4 whitespace-nowrap font-mono font-bold text-slate-100 group-hover:text-red-300 transition-colors">
+                      <td className="py-3.5 px-4 whitespace-nowrap font-mono font-bold text-slate-100 group-hover:text-[#2dd4bf] transition-colors">
                         <div className="flex items-center gap-2">
                           {isPrimaryDemo && (
-                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+                            <span className="w-2 h-2 rounded-full bg-[#2dd4bf] animate-pulse shrink-0" />
                           )}
                           <span>{incident.incidentNumber}</span>
                         </div>
@@ -265,7 +265,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
 
                       {/* Service */}
                       <td className="py-3.5 px-3 whitespace-nowrap">
-                        <span className="font-mono text-xs text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded border border-slate-700/60">
+                        <span className="font-mono text-xs text-slate-300 bg-[#070D12] px-2.5 py-1 rounded border border-[#1A2833]">
                           {incident.serviceName}
                         </span>
                       </td>
@@ -275,8 +275,8 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
                         <span
                           className={`font-mono text-[11px] px-1.5 py-0.5 rounded border ${
                             incident.environment === 'Production'
-                              ? 'bg-red-500/10 text-red-300 border-red-500/30'
-                              : 'bg-slate-800 text-slate-400 border-slate-700'
+                              ? 'bg-teal-500/10 text-teal-300 border-teal-500/30'
+                              : 'bg-[#070D12] text-slate-400 border-[#1A2833]'
                           }`}
                         >
                           {incident.environment}
@@ -303,7 +303,7 @@ export const IncidentsListView: React.FC<IncidentsListViewProps> = ({
 
                       {/* Action */}
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 text-slate-400 group-hover:text-red-400 font-mono text-xs">
+                        <span className="inline-flex items-center gap-1 text-slate-400 group-hover:text-[#2dd4bf] font-mono text-xs">
                           War Room <ArrowUpRight className="w-3.5 h-3.5" />
                         </span>
                       </td>

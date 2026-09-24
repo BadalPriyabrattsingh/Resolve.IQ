@@ -19,13 +19,13 @@ export const SeverityBadge: React.FC<SeverityBadgeProps> = ({
   const getStyles = () => {
     switch (severity) {
       case 'SEV-1':
-        return 'bg-red-500/15 text-red-400 border-red-500/40 hover:bg-red-500/25';
+        return 'bg-[#e07a5f]/15 text-[#fca5a5] border-[#e07a5f]/40 hover:bg-[#e07a5f]/25';
       case 'SEV-2':
         return 'bg-orange-500/15 text-orange-400 border-orange-500/40 hover:bg-orange-500/25';
       case 'SEV-3':
         return 'bg-amber-500/15 text-amber-300 border-amber-500/40 hover:bg-amber-500/25';
       case 'SEV-4':
-        return 'bg-sky-500/15 text-sky-400 border-sky-500/40 hover:bg-sky-500/25';
+        return 'bg-teal-500/15 text-[#2dd4bf] border-teal-500/40 hover:bg-teal-500/25';
       default:
         return 'bg-slate-800 text-slate-300 border-slate-700';
     }

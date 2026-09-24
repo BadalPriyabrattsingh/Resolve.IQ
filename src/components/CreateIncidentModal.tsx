@@ -70,11 +70,11 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full p-6 shadow-2xl space-y-5 my-8">
+      <div className="bg-[#0D151C] border border-[#1A2833] rounded-xl max-w-2xl w-full p-6 shadow-2xl space-y-5 my-8">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1A2833]">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-red-500/20 text-red-400 border border-red-500/40">
+            <div className="p-1.5 rounded-md bg-[#e07a5f]/20 text-[#fca5a5] border border-[#e07a5f]/40">
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
@@ -89,14 +89,14 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-[#101C25] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {formError && (
-          <div className="p-3 rounded bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono">
+          <div className="p-3 rounded bg-[#e07a5f]/15 border border-[#e07a5f]/40 text-[#fca5a5] text-xs font-mono">
             {formError}
           </div>
         )}
@@ -105,7 +105,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
           {/* Incident Title */}
           <div className="space-y-1">
             <label className="text-slate-300 font-semibold block">
-              Incident Title <span className="text-red-400">*</span>
+              Incident Title <span className="text-[#2dd4bf]">*</span>
             </label>
             <input
               type="text"
@@ -113,7 +113,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
               placeholder="e.g. Payment Gateway 500 error rate elevated to 8.4%"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-red-500/50"
+              className="w-full p-2.5 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
             />
           </div>
 
@@ -128,10 +128,10 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
                     key={sev}
                     type="button"
                     onClick={() => setSeverity(sev)}
-                    className={`p-2 rounded border text-left flex items-center justify-between ${
+                    className={`p-2 rounded border text-left flex items-center justify-between cursor-pointer ${
                       severity === sev
-                        ? 'bg-slate-800 border-red-500/80 text-white font-bold'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900'
+                        ? 'bg-[#101C25] border-teal-500/80 text-white font-bold'
+                        : 'bg-[#070D12] border-[#1A2833] text-slate-400 hover:bg-[#0D151C]'
                     }`}
                   >
                     <SeverityBadge severity={sev} size="sm" />
@@ -143,12 +143,12 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
             {/* Impacted Service */}
             <div className="space-y-1">
               <label className="text-slate-300 font-semibold block">
-                Impacted Service <span className="text-red-400">*</span>
+                Impacted Service <span className="text-[#2dd4bf]">*</span>
               </label>
               <select
                 value={serviceId}
                 onChange={(e) => setServiceId(e.target.value)}
-                className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-red-500/50"
+                className="w-full p-2.5 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
               >
                 {services.map((srv) => (
                   <option key={srv.id} value={srv.id}>
@@ -166,7 +166,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
               <select
                 value={environment}
                 onChange={(e) => setEnvironment(e.target.value as any)}
-                className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-red-500/50"
+                className="w-full p-2.5 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
               >
                 <option value="Production">Production</option>
                 <option value="Staging">Staging</option>
@@ -183,7 +183,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
                     name="impact"
                     checked={customerImpact}
                     onChange={() => setCustomerImpact(true)}
-                    className="accent-red-500"
+                    className="accent-[#2dd4bf]"
                   />
                   <span>Active Customer Outage</span>
                 </label>
@@ -193,7 +193,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
                     name="impact"
                     checked={!customerImpact}
                     onChange={() => setCustomerImpact(false)}
-                    className="accent-red-500"
+                    className="accent-[#2dd4bf]"
                   />
                   <span>Internal / Degraded Only</span>
                 </label>
@@ -209,7 +209,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
               placeholder="e.g. Users encountering HTTP 500 on checkout step 2"
               value={impactSummary}
               onChange={(e) => setImpactSummary(e.target.value)}
-              className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-red-500/50"
+              className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
             />
           </div>
 
@@ -221,7 +221,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
               placeholder="Provide log traces, observed error spikes, relevant release IDs..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-red-500/50"
+              className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
             />
           </div>
 
@@ -232,7 +232,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
               <select
                 value={assignedEngineer}
                 onChange={(e) => setAssignedEngineer(e.target.value)}
-                className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-300 focus:outline-none"
+                className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-300 focus:outline-none"
               >
                 <option value="">-- Auto-assign on-call --</option>
                 {allUsers.map((u) => (
@@ -248,7 +248,7 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
               <select
                 value={incidentManager}
                 onChange={(e) => setIncidentManager(e.target.value)}
-                className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-300 focus:outline-none"
+                className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-300 focus:outline-none"
               >
                 <option value="">-- Auto-assign manager --</option>
                 {allUsers.map((u) => (
@@ -261,18 +261,18 @@ export const CreateIncidentModal: React.FC<CreateIncidentModalProps> = ({
           </div>
 
           {/* Submit footer */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#1A2833]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-mono rounded bg-slate-800 text-slate-300 hover:bg-slate-700"
+              className="px-4 py-2 text-xs font-mono rounded bg-[#101C25] text-slate-300 hover:bg-[#182631] cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-mono font-bold rounded bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-950/50 disabled:opacity-50 flex items-center gap-2"
+              className="px-5 py-2 text-xs font-mono font-bold rounded bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] shadow-lg shadow-teal-950/50 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
               <AlertTriangle className="w-3.5 h-3.5" />
               <span>{isSubmitting ? 'Declaring...' : 'Declare Incident'}</span>

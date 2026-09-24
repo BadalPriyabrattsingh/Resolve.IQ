@@ -10,12 +10,14 @@ import { RbacMatrixView } from './components/RbacMatrixView';
 import { CreateIncidentModal } from './components/CreateIncidentModal';
 import { AddEvidenceModal } from './components/AddEvidenceModal';
 import { AddServiceModal } from './components/AddServiceModal';
+import { LoginGateway } from './components/LoginGateway';
 import { api, setCurrentUser } from './api';
 import { User, Incident, Service, DashboardStats } from './types';
 
 export function App() {
   const [currentTab, setCurrentTab] = useState<NavigationTab>('dashboard');
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [showAuthGateway, setShowAuthGateway] = useState(false);
 
   // Core Data
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -125,10 +127,12 @@ export function App() {
 
   if (isLoading || !currentUser) {
     return (
-      <div className="min-h-screen bg-[#0A0D14] flex flex-col items-center justify-center p-4">
-        <div className="w-10 h-10 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <div className="font-mono text-sm text-slate-300 font-semibold">
-          Resolve<span className="text-red-400">IQ</span> SRE Console
+      <div className="min-h-screen bg-[#080D11] flex flex-col items-center justify-center p-4">
+        <div className="w-10 h-10 border-2 border-[#2dd4bf] border-t-transparent rounded-full animate-spin mb-4" />
+        <div className="font-mono text-sm text-slate-200 font-semibold flex items-center">
+          <span>RESOLVE</span>
+          <span className="text-[#2dd4bf] ml-0.5">IQ</span>
+          <span className="text-slate-500 text-xs ml-2 font-normal">SRE Console</span>
         </div>
         <div className="font-mono text-xs text-slate-500 mt-1">
           Connecting to incident database and telemetry feeds...
@@ -137,8 +141,24 @@ export function App() {
     );
   }
 
+  // If user requests to view the Login / Auth Gateway from the screenshot
+  if (showAuthGateway) {
+    return (
+      <LoginGateway
+        allUsers={allUsers}
+        onLogin={(userId) => {
+          handleSwitchUser(userId);
+          setShowAuthGateway(false);
+        }}
+        onWakeServers={() => {
+          loadInitialData();
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#070A10] text-slate-100 font-sans flex flex-col antialiased selection:bg-red-500/30 selection:text-red-200">
+    <div className="min-h-screen bg-[#080D11] text-slate-100 font-sans flex flex-col antialiased selection:bg-teal-500/25 selection:text-teal-200">
       {/* Top Navigation */}
       <Navbar
         currentUser={currentUser}
@@ -149,6 +169,7 @@ export function App() {
         onSearchChange={handleSearchChange}
         searchQuery={searchQuery}
         onSelectIncidentById={(id) => setSelectedIncidentId(id)}
+        onOpenAuthGateway={() => setShowAuthGateway(true)}
       />
 
       {/* Main App Container with Sidebar */}

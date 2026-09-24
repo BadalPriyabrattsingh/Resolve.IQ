@@ -499,14 +499,14 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
       </div>
 
       {/* 2. SRE MISSION CONTROL WORKSPACE BANNER */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/90 shadow-xl overflow-hidden">
+      <div className="rounded-xl border border-[#1A2833] bg-[#0D151C] shadow-xl overflow-hidden">
         {/* Banner Top Header */}
-        <div className="p-4 md:p-5 border-b border-slate-800/80 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
+        <div className="p-4 md:p-5 border-b border-[#1A2833] bg-[#080D11]">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Title & Identifiers */}
             <div className="space-y-2">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="font-mono text-sm font-bold text-slate-200 tracking-wider bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                <span className="font-mono text-sm font-bold text-slate-200 tracking-wider bg-[#070D12] px-2 py-0.5 rounded border border-[#1A2833]">
                   {incident.incidentNumber}
                 </span>
                 <SeverityBadge severity={incident.severity} size="md" />
@@ -515,18 +515,18 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
                 {/* Service tag */}
                 <button
                   onClick={() => onSelectService(incident.serviceId)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-mono transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#070D12] hover:bg-[#101C25] text-slate-200 border border-[#1A2833] text-xs font-mono transition-colors"
                 >
-                  <Server className="w-3.5 h-3.5 text-slate-400" />
+                  <Server className="w-3.5 h-3.5 text-[#2dd4bf]" />
                   <span>{incident.serviceName}</span>
                   {linkedService && (
                     <span
                       className={`text-[9px] px-1 rounded font-bold ${
                         linkedService.healthStatus === 'HEALTHY'
-                          ? 'bg-emerald-500/20 text-emerald-300'
+                          ? 'bg-teal-500/20 text-[#2dd4bf]'
                           : linkedService.healthStatus === 'DEGRADED'
                           ? 'bg-amber-500/20 text-amber-300'
-                          : 'bg-red-500/20 text-red-300'
+                          : 'bg-[#e07a5f]/20 text-[#fca5a5]'
                       }`}
                     >
                       {linkedService.healthStatus}
@@ -712,7 +712,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
       </div>
 
       {/* 3. MAIN WORKSPACE 4-TAB NAVIGATION */}
-      <div className="border-b border-slate-800 flex items-center justify-between gap-4 overflow-x-auto">
+      <div className="border-b border-[#1A2833] flex items-center justify-between gap-4 overflow-x-auto">
         <div className="flex items-center gap-1 font-mono text-xs">
           {/* Tab 1: AI Investigation */}
           <button
@@ -720,14 +720,14 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             onClick={() => setCenterTab('investigation')}
             className={`px-3.5 py-2.5 rounded-t-lg font-bold transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               centerTab === 'investigation'
-                ? 'bg-purple-950/40 text-purple-200 border-purple-500'
-                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-900/50'
+                ? 'bg-[#101C25] text-[#2dd4bf] border-[#2dd4bf]'
+                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-[#0D151C]'
             }`}
           >
-            <Sparkles className="w-4 h-4 text-purple-400" />
+            <Sparkles className="w-4 h-4 text-[#2dd4bf]" />
             <span>AI Investigation</span>
             {investigation && (
-              <span className="px-1.5 py-0.2 rounded text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              <span className="px-1.5 py-0.2 rounded text-[10px] bg-teal-500/20 text-[#2dd4bf] border border-teal-500/30">
                 {investigation.confirmedRootCause || incident.confirmedRootCause
                   ? 'VERIFIED'
                   : `${investigation.hypotheses.length} Hypotheses`}
@@ -741,13 +741,13 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             onClick={() => setCenterTab('actions')}
             className={`px-3.5 py-2.5 rounded-t-lg font-bold transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               centerTab === 'actions'
-                ? 'bg-slate-900 text-slate-100 border-red-500'
-                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-900/50'
+                ? 'bg-[#101C25] text-slate-100 border-[#e07a5f]'
+                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-[#0D151C]'
             }`}
           >
             <Wrench className="w-4 h-4 text-amber-400" />
             <span>Recommended Actions</span>
-            <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">
+            <span className="px-1.5 py-0.2 rounded text-[10px] bg-[#080E13] text-slate-300 border border-[#182631]">
               Runbooks
             </span>
           </button>
@@ -758,13 +758,13 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             onClick={() => setCenterTab('timeline')}
             className={`px-3.5 py-2.5 rounded-t-lg font-bold transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               centerTab === 'timeline'
-                ? 'bg-slate-900 text-slate-100 border-blue-500'
-                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-900/50'
+                ? 'bg-[#101C25] text-slate-100 border-[#2dd4bf]'
+                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-[#0D151C]'
             }`}
           >
-            <Clock className="w-4 h-4 text-blue-400" />
+            <Clock className="w-4 h-4 text-[#2dd4bf]" />
             <span>Timeline</span>
-            <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">
+            <span className="px-1.5 py-0.2 rounded text-[10px] bg-[#080E13] text-slate-300 border border-[#182631]">
               {timelineList.length}
             </span>
           </button>
@@ -775,13 +775,13 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             onClick={() => setCenterTab('evidence')}
             className={`px-3.5 py-2.5 rounded-t-lg font-bold transition-colors flex items-center gap-2 border-b-2 cursor-pointer ${
               centerTab === 'evidence'
-                ? 'bg-slate-900 text-slate-100 border-emerald-500'
-                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-slate-900/50'
+                ? 'bg-[#101C25] text-slate-100 border-teal-400'
+                : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-[#0D151C]'
             }`}
           >
-            <Paperclip className="w-4 h-4 text-emerald-400" />
+            <Paperclip className="w-4 h-4 text-teal-400" />
             <span>Evidence Vault</span>
-            <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">
+            <span className="px-1.5 py-0.2 rounded text-[10px] bg-[#080E13] text-slate-300 border border-[#182631]">
               {evidenceList.length}
             </span>
           </button>
@@ -792,9 +792,9 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
           id="btn-attach-evidence-header"
           onClick={() => onOpenAddEvidence(incident.id)}
           disabled={currentUser.role === 'VIEWER'}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-mono font-semibold transition-colors disabled:opacity-40 cursor-pointer mb-1 shrink-0"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#101C25] hover:bg-[#162734] text-[#2dd4bf] border border-teal-500/30 text-xs font-mono font-semibold transition-colors disabled:opacity-40 cursor-pointer mb-1 shrink-0"
         >
-          <Plus className="w-3.5 h-3.5 text-red-400" />
+          <Plus className="w-3.5 h-3.5 text-[#2dd4bf]" />
           <span>Attach Evidence</span>
         </button>
       </div>
@@ -802,7 +802,7 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
       {/* Quick Comment / War Room Note Form */}
       <form
         onSubmit={handlePostComment}
-        className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800/80 flex items-center gap-2.5"
+        className="p-3.5 rounded-xl bg-[#0D151C] border border-[#1A2833] flex items-center gap-2.5"
       >
         <div className="relative flex-1">
           <input
@@ -815,15 +815,15 @@ export const IncidentDetailView: React.FC<IncidentDetailViewProps> = ({
             value={quickComment}
             onChange={(e) => setQuickComment(e.target.value)}
             disabled={currentUser.role === 'VIEWER' || submittingComment}
-            className="w-full pl-3 pr-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-red-500/50 font-mono"
+            className="w-full pl-3 pr-3 py-2 text-xs bg-[#070D12] border border-[#1A2833] rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#2dd4bf] font-mono"
           />
         </div>
         <button
           type="submit"
           disabled={!quickComment.trim() || submittingComment || currentUser.role === 'VIEWER'}
-          className="px-3.5 py-2 text-xs font-mono font-semibold rounded bg-red-600 hover:bg-red-500 text-white disabled:opacity-40 flex items-center gap-1.5 transition-colors cursor-pointer"
+          className="px-3.5 py-2 text-xs font-mono font-bold rounded bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] disabled:opacity-40 flex items-center gap-1.5 transition-colors cursor-pointer"
         >
-          <Send className="w-3 h-3" />
+          <Send className="w-3.5 h-3.5" />
           <span>Post Note</span>
         </button>
       </form>

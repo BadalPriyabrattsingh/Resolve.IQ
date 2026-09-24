@@ -6,30 +6,35 @@
 }
 
 body {
-  background-color: #070a10;
+  background-color: #080D11;
   color: #f1f5f9;
   overflow-x: hidden;
+}
+
+::selection {
+  background-color: rgba(45, 212, 191, 0.25);
+  color: #5eead4;
 }
 
 code, pre, .font-mono {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* Custom sleek dark scrollbar */
+/* Sleek dark obsidian-teal scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f17;
+  background: #080D11;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #182631;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #233746;
 }

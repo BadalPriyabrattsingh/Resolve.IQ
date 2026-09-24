@@ -61,10 +61,10 @@ export const AddServiceModal: React.FC<AddServiceModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4 my-8">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div className="bg-[#0D151C] border border-[#1A2833] rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4 my-8">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1A2833]">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/40">
+            <div className="p-1.5 rounded bg-teal-500/20 text-[#2dd4bf] border border-teal-500/40">
               <Server className="w-4 h-4" />
             </div>
             <div>
@@ -79,14 +79,14 @@ export const AddServiceModal: React.FC<AddServiceModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-[#101C25] cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {formError && (
-          <div className="p-2.5 rounded bg-red-950/40 border border-red-500/40 text-red-300 text-xs font-mono">
+          <div className="p-2.5 rounded bg-[#e07a5f]/15 border border-[#e07a5f]/40 text-[#fca5a5] text-xs font-mono">
             {formError}
           </div>
         )}
@@ -94,7 +94,7 @@ export const AddServiceModal: React.FC<AddServiceModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-3.5 text-xs font-mono">
           <div className="space-y-1">
             <label className="text-slate-300 font-semibold block">
-              Service Name <span className="text-red-400">*</span>
+              Service Name <span className="text-[#2dd4bf]">*</span>
             </label>
             <input
               type="text"
@@ -102,13 +102,13 @@ export const AddServiceModal: React.FC<AddServiceModalProps> = ({
               placeholder="e.g. Ledger Service / API Gateway"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-red-500/50"
+              className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
             />
           </div>
 
           <div className="space-y-1">
             <label className="text-slate-300 font-semibold block">
-              Owning Engineering Team <span className="text-red-400">*</span>
+              Owning Engineering Team <span className="text-[#2dd4bf]">*</span>
             </label>
             <input
               type="text"
@@ -116,7 +116,7 @@ export const AddServiceModal: React.FC<AddServiceModalProps> = ({
               placeholder="e.g. Core Banking / SRE Platform"
               value={owningTeam}
               onChange={(e) => setOwningTeam(e.target.value)}
-              className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-red-500/50"
+              className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
             />
           </div>
 
@@ -126,7 +126,7 @@ export const AddServiceModal: React.FC<AddServiceModalProps> = ({
               <select
                 value={criticality}
                 onChange={(e) => setCriticality(e.target.value as ServiceCriticality)}
-                className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none"
+                className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
               >
                 <option value="TIER-0">TIER-0 (Immediate Outage Impact)</option>
                 <option value="TIER-1">TIER-1 (High Impact)</option>
@@ -140,7 +140,7 @@ export const AddServiceModal: React.FC<AddServiceModalProps> = ({
               <select
                 value={healthStatus}
                 onChange={(e) => setHealthStatus(e.target.value as ServiceHealth)}
-                className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none"
+                className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
               >
                 <option value="HEALTHY">HEALTHY</option>
                 <option value="DEGRADED">DEGRADED</option>
@@ -157,7 +157,7 @@ export const AddServiceModal: React.FC<AddServiceModalProps> = ({
               placeholder="Primary responsibilities, SLA targets, and downstream dependencies..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-red-500/50"
+              className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
             />
           </div>
 
@@ -168,22 +168,22 @@ export const AddServiceModal: React.FC<AddServiceModalProps> = ({
               placeholder="e.g. https://github.com/org/repo-service"
               value={repositoryUrl}
               onChange={(e) => setRepositoryUrl(e.target.value)}
-              className="w-full p-2 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-red-500/50"
+              className="w-full p-2 bg-[#070D12] border border-[#1A2833] rounded text-slate-200 focus:outline-none focus:border-[#2dd4bf]"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#1A2833]">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 text-xs font-mono rounded bg-slate-800 text-slate-300 hover:bg-slate-700"
+              className="px-3.5 py-1.5 text-xs font-mono rounded bg-[#101C25] text-slate-300 hover:bg-[#182631] cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-1.5 text-xs font-mono font-bold rounded bg-red-600 hover:bg-red-500 text-white disabled:opacity-50"
+              className="px-4 py-1.5 text-xs font-mono font-bold rounded bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] disabled:opacity-50 cursor-pointer shadow-md shadow-teal-950/40"
             >
               {isSubmitting ? 'Registering...' : 'Register Service'}
             </button>

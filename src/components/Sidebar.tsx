@@ -57,12 +57,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       id="resolveiq-sidebar"
-      className="w-64 bg-[#0A0D14] border-r border-slate-800/80 flex flex-col justify-between shrink-0 h-[calc(100vh-4rem)] sticky top-16 select-none"
+      className="w-64 bg-[#090E13] border-r border-[#16232D] flex flex-col justify-between shrink-0 h-[calc(100vh-4rem)] sticky top-16 select-none"
     >
       <div className="p-3 space-y-6">
         {/* Navigation Category */}
         <div>
-          <div className="px-3 mb-2 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+          <div className="px-3 mb-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
             Operations Workspace
           </div>
           <nav className="space-y-1">
@@ -74,16 +74,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   key={item.id}
                   id={`nav-tab-${item.id}`}
                   onClick={() => onSelectTab(item.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-all ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-slate-800/90 text-slate-100 border border-slate-700/80 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                      ? 'bg-[#101C25] text-[#2dd4bf] border border-teal-500/30 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#0D151C]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <Icon
                       className={`w-4 h-4 ${
-                        isActive ? 'text-red-400' : 'text-slate-500 group-hover:text-slate-400'
+                        isActive ? 'text-[#2dd4bf]' : 'text-slate-500 group-hover:text-slate-400'
                       }`}
                     />
                     <span>{item.label}</span>
@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {item.badge !== undefined && (
                     <span
                       className={`text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold ${
-                        item.badgeColor || 'bg-slate-800 text-slate-400 border-slate-700'
+                        item.badgeColor || 'bg-[#0E171F] text-slate-400 border-[#1A2833]'
                       }`}
                     >
                       {item.badge}
@@ -105,13 +105,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Quick System Telemetry pill box */}
         {stats && (
-          <div className="px-3 py-3 rounded-lg bg-slate-900/60 border border-slate-800/80 text-xs">
+          <div className="px-3 py-3 rounded-lg bg-[#0D151C] border border-[#1A2833] text-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
                 Cluster Health
               </span>
-              <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="flex items-center gap-1 text-[10px] font-mono text-[#2dd4bf]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#2dd4bf] animate-pulse"></span>
                 ACTIVE
               </span>
             </div>
@@ -119,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-1.5 text-[11px] font-mono">
               <div className="flex items-center justify-between text-slate-400">
                 <span>Active SEV-1:</span>
-                <span className={`font-bold ${stats.sev1Count > 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                <span className={`font-bold ${stats.sev1Count > 0 ? 'text-[#e07a5f]' : 'text-slate-400'}`}>
                   {stats.sev1Count}
                 </span>
               </div>
@@ -135,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <div className="flex items-center justify-between text-slate-400">
                 <span>Avg Resolution (MTTR):</span>
-                <span className="text-blue-300 font-semibold">{stats.avgResolutionTimeMinutes}m</span>
+                <span className="text-teal-300 font-semibold">{stats.avgResolutionTimeMinutes}m</span>
               </div>
             </div>
           </div>
@@ -143,15 +143,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="p-3 border-t border-slate-800/80 text-[11px] text-slate-400 font-mono space-y-1">
+      <div className="p-3 border-t border-[#16232D] text-[11px] text-slate-500 font-mono space-y-1">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1 text-slate-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-[#2dd4bf]" />
             <span>Auth: RBAC Enforced</span>
           </span>
-          <span className="text-slate-400 font-mono">v1.2-sre</span>
+          <span className="text-slate-500 font-mono">v1.2-sre</span>
         </div>
-        <div className="text-[10px] text-slate-400">Persistent JSON Engine</div>
+        <div className="text-[10px] text-slate-600">Signal Intelligence Engine</div>
       </div>
     </aside>
   );

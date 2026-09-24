@@ -88,29 +88,29 @@ export const GlobalTimelineView: React.FC<GlobalTimelineViewProps> = ({
   const getNodeColor = (eventType: TimelineEvent['eventType']) => {
     switch (eventType) {
       case 'CREATED':
-        return 'bg-red-500 text-white ring-4 ring-red-950';
+        return 'bg-[#e07a5f] text-white ring-4 ring-[#e07a5f]/20';
       case 'STATUS_CHANGE':
-        return 'bg-blue-500 text-white ring-4 ring-blue-950';
+        return 'bg-[#2dd4bf] text-[#080D11] ring-4 ring-teal-500/20';
       case 'SEVERITY_CHANGE':
-        return 'bg-amber-500 text-white ring-4 ring-amber-950';
+        return 'bg-amber-500 text-white ring-4 ring-amber-500/20';
       case 'RESOLUTION':
-        return 'bg-emerald-500 text-white ring-4 ring-emerald-950';
+        return 'bg-emerald-500 text-white ring-4 ring-emerald-500/20';
       case 'ASSIGNMENT':
-        return 'bg-purple-500 text-white ring-4 ring-purple-950';
+        return 'bg-teal-600 text-white ring-4 ring-teal-600/20';
       case 'COMMENT':
-        return 'bg-slate-700 text-slate-300 ring-4 ring-slate-900';
+        return 'bg-[#182631] text-slate-300 ring-4 ring-[#182631]/40';
       default:
-        return 'bg-slate-700 text-slate-300 ring-4 ring-slate-900';
+        return 'bg-[#182631] text-slate-300 ring-4 ring-[#182631]/40';
     }
   };
 
   return (
     <div className="space-y-5 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#1A2833]">
         <div>
           <h1 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-red-400" />
+            <Activity className="w-5 h-5 text-[#2dd4bf]" />
             <span>Global Operations Timeline Feed</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -124,7 +124,7 @@ export const GlobalTimelineView: React.FC<GlobalTimelineViewProps> = ({
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none"
+            className="bg-[#070D12] border border-[#1A2833] rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
           >
             <option value="ALL">All Event Types</option>
             <option value="CREATED">Created</option>
@@ -139,12 +139,12 @@ export const GlobalTimelineView: React.FC<GlobalTimelineViewProps> = ({
 
       {loading ? (
         <div className="p-12 text-center text-slate-400 font-mono text-xs">
-          <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <div className="w-6 h-6 border-2 border-[#2dd4bf] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
           Aggregating cross-service audit trail...
         </div>
       ) : (
-        <div className="p-5 rounded-xl bg-slate-900/80 border border-slate-800/80">
-          <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+        <div className="p-5 rounded-xl bg-[#0D151C] border border-[#1A2833]">
+          <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#1A2833]">
             {filteredEvents.map((event) => {
               const Icon = getTimelineIcon(event.eventType);
 
@@ -158,20 +158,20 @@ export const GlobalTimelineView: React.FC<GlobalTimelineViewProps> = ({
                     <Icon className="w-2.5 h-2.5" />
                   </div>
 
-                  <div className="p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 transition-colors space-y-1.5">
+                  <div className="p-3.5 rounded-lg bg-[#070D12] border border-[#1A2833] hover:border-teal-500/40 transition-colors space-y-1.5">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         {event.incidentNumber && (
                           <button
                             onClick={() => onSelectIncident(event.incidentId)}
-                            className="font-mono text-xs font-bold text-red-400 hover:underline flex items-center gap-1"
+                            className="font-mono text-xs font-bold text-[#2dd4bf] hover:underline flex items-center gap-1 cursor-pointer"
                           >
                             <span>{event.incidentNumber}</span>
                             <ArrowUpRight className="w-3 h-3" />
                           </button>
                         )}
                         <span className="text-xs font-bold text-slate-200">{event.title}</span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#101C25] text-slate-400 border border-[#1A2833]">
                           {event.eventType}
                         </span>
                       </div>
@@ -191,10 +191,10 @@ export const GlobalTimelineView: React.FC<GlobalTimelineViewProps> = ({
                       {event.description}
                     </p>
 
-                    <div className="pt-1.5 border-t border-slate-900 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                    <div className="pt-1.5 border-t border-[#182631] flex items-center justify-between text-[10px] font-mono text-slate-500">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-400">{event.actorName}</span>
-                        <span className="px-1 py-0.2 rounded bg-slate-900 text-slate-500 border border-slate-800">
+                        <span className="px-1 py-0.2 rounded bg-[#0D151C] text-slate-400 border border-[#1A2833]">
                           {event.actorRole}
                         </span>
                       </div>

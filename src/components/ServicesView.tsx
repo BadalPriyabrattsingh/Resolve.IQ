@@ -69,23 +69,23 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
     switch (health) {
       case 'HEALTHY':
         return {
-          bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-          dot: 'bg-emerald-400',
+          bg: 'bg-teal-500/15 text-[#2dd4bf] border-teal-500/30',
+          dot: 'bg-[#2dd4bf]',
         };
       case 'DEGRADED':
         return {
-          bg: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+          bg: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
           dot: 'bg-amber-400 animate-pulse',
         };
       case 'OUTAGE':
         return {
-          bg: 'bg-red-500/10 text-red-400 border-red-500/30',
-          dot: 'bg-red-500 animate-ping',
+          bg: 'bg-[#e07a5f]/15 text-[#fca5a5] border-[#e07a5f]/30',
+          dot: 'bg-[#e07a5f] animate-ping',
         };
       case 'MAINTENANCE':
         return {
-          bg: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-          dot: 'bg-blue-400',
+          bg: 'bg-sky-500/10 text-sky-400 border-sky-500/30',
+          dot: 'bg-sky-400',
         };
       default:
         return {
@@ -98,12 +98,12 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
   return (
     <div className="space-y-5 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#1A2833]">
         <div>
           <h1 className="text-xl font-bold font-mono text-slate-100 flex items-center gap-2">
-            <Server className="w-5 h-5 text-red-400" />
+            <Server className="w-5 h-5 text-[#2dd4bf]" />
             <span>Service Catalog</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
+            <span className="text-xs px-2 py-0.5 rounded bg-[#101C25] text-[#2dd4bf] font-mono border border-teal-500/30">
               {services.length} Registered Services
             </span>
           </h1>
@@ -115,9 +115,9 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
         <button
           onClick={onOpenAddService}
           disabled={!permissions.canManageServices}
-          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-semibold shadow transition-all ${
+          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-bold transition-all ${
             permissions.canManageServices
-              ? 'bg-red-600 hover:bg-red-500 text-white shadow-red-950/40 cursor-pointer'
+              ? 'bg-[#2dd4bf] hover:bg-[#20b2aa] text-[#080D11] cursor-pointer shadow-md shadow-teal-950/40'
               : 'bg-slate-800 text-slate-500 cursor-not-allowed'
           }`}
         >
@@ -127,7 +127,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
       </div>
 
       {/* Filter bar */}
-      <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="p-3.5 rounded-xl bg-[#0D151C] border border-[#1A2833] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -135,7 +135,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
             placeholder="Search service name, team, description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-red-500/50 font-mono"
+            className="w-full pl-9 pr-4 py-1.5 text-xs bg-[#070D12] border border-[#1A2833] rounded-md text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#2dd4bf] font-mono"
           />
         </div>
 
@@ -144,7 +144,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
           <select
             value={tierFilter}
             onChange={(e) => setTierFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none"
+            className="bg-[#070D12] border border-[#1A2833] rounded px-2.5 py-1 text-xs font-mono text-slate-300 focus:outline-none focus:border-[#2dd4bf]"
           >
             <option value="ALL">All Tiers</option>
             <option value="TIER-0">TIER-0 (Critical)</option>
@@ -168,7 +168,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
             <div
               key={srv.id}
               id={`service-card-${srv.id}`}
-              className="p-4 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-slate-700/80 transition-all flex flex-col justify-between space-y-4"
+              className="p-4 rounded-xl bg-[#0D151C] border border-[#1A2833] hover:border-teal-500/40 transition-all flex flex-col justify-between space-y-4"
             >
               <div>
                 {/* Header */}
@@ -196,10 +196,10 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
 
                 {/* Details Badges */}
                 <div className="mt-3 flex items-center gap-2 flex-wrap text-[11px] font-mono">
-                  <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  <span className="px-2 py-0.5 rounded bg-[#101C25] text-slate-300 border border-[#1A2833]">
                     {srv.criticality}
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">
+                  <span className="px-2 py-0.5 rounded bg-[#070D12] text-slate-400 border border-[#1A2833]">
                     Env: {srv.environment}
                   </span>
                   {srv.repositoryUrl && (
@@ -207,7 +207,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
                       href={srv.repositoryUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-950 text-blue-400 hover:text-blue-300 border border-slate-800 hover:border-slate-700"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#070D12] text-[#2dd4bf] hover:text-teal-300 border border-[#1A2833] hover:border-teal-500/40"
                     >
                       <GitBranch className="w-3 h-3" />
                       <span>Repo</span>
@@ -218,14 +218,14 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
               </div>
 
               {/* Bottom Actions & Incident counter */}
-              <div className="pt-3 border-t border-slate-800/80 space-y-2">
+              <div className="pt-3 border-t border-[#182631] space-y-2">
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className="text-slate-500">Active Incidents:</span>
                   <button
                     onClick={() => onSelectServiceIncidents(srv.id)}
                     className={`px-2 py-0.5 rounded text-[11px] font-bold transition-colors ${
                       openIncidents.length > 0
-                        ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                        ? 'bg-[#e07a5f]/20 text-[#fca5a5] hover:bg-[#e07a5f]/30'
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
@@ -235,13 +235,13 @@ export const ServicesView: React.FC<ServicesViewProps> = ({
 
                 {/* Health Status Quick Switcher (if authorized) */}
                 {permissions.canManageServices && (
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-[11px] font-mono">
+                  <div className="flex items-center justify-between pt-2 border-t border-[#182631] text-[11px] font-mono">
                     <span className="text-slate-500">Override Health:</span>
                     <select
                       value={srv.healthStatus}
                       disabled={updatingHealthId === srv.id}
                       onChange={(e) => handleQuickHealthChange(srv.id, e.target.value as ServiceHealth)}
-                      className="bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none"
+                      className="bg-[#070D12] border border-[#1A2833] rounded px-1.5 py-0.5 text-[10px] text-slate-300 focus:outline-none"
                     >
                       <option value="HEALTHY">HEALTHY</option>
                       <option value="DEGRADED">DEGRADED</option>
